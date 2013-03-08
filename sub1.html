@@ -3,8 +3,43 @@
 <head>
     <title>Auto complete test</title>
 </head>
+<style>
+    #diigo_a_search{
+        position: relative;
+    }
+    #diigo_a_search .d_s_type{
+        width:50px;
+        height: 26px;
+        display: inline-block;
+        background: red;
+    }
+    #diigo_a_search input{
+        width: 300px;
+        height: 20px;
+        display: inline-block;
+    }
+    #diigo_a_search .d_s_seachicon{
+        width: 50px;
+        height: 26px;
+        display: inline-block;
+        background: blue;
+    }
+</style>
 <body>
+    <div id='input'>
 
+    </div>
 </body>
+<script src="js/jquery-1.9.1.min.js"></script>
 <script src="js/auto_complete.js"></script>
+<script>
+    var a = ["abc","bcd","df","diigo","delecios","android","iphone"];
+    var s = com.diigo.Search({
+        id:'input',
+//        source:function(request,response){
+//            console.log(request,response);
+//        }
+        source:a
+    });
+</script>
 </html>
