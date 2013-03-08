@@ -99,7 +99,21 @@ com.diigo.Search= (function(){
 
         _render:function(value){
             console.log(value);
-
+            var inputText = this.inputDom.value;
+            if(inputText.length<1){
+                this.autoSuggestionsDom.style.display="none";
+                return;
+            }else{
+                this.autoSuggestionsDom.style.display = "";
+            }
+            var html = '<ul>';
+            for(var i= 0,len=value.length;i<len;i++){
+                html += "<li>Tags: "+value[i]+"</li>";
+            }
+            html+='<li class="meta">Meta: '+inputText+' </li> ' +
+                  '<li class="fulltext">Full text: '+inputText+'</li> ';
+            html+='</ul>';
+            this.autoSuggestionsDom.innerHTML = html;
         },
 
 
