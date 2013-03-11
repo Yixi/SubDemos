@@ -16,13 +16,20 @@ com.diigo.Search= (function(){
             ....
         })
      */
+    if(!Function.prototype.bind){
+        //TODO: extend the bind function in ECMAscript 3.
+
+
+    }
 
     var SearchBox = {
+        version:"1.0.0",
         /* default options*/
         opt:{
             id:null,
             minLength:1,
-            source:null
+            source:null,
+            delay:300
         },
 
         /*变量*/
@@ -32,6 +39,7 @@ com.diigo.Search= (function(){
         searchIconDom:null,
         autoSuggestionsDom:null,
         lastTime:0,
+        isChange:null,
 
 
         /*Util functions*/
@@ -43,29 +51,32 @@ com.diigo.Search= (function(){
 
         /*Events*/
 
-        Events:{
-            _keyUp:function(event){
-                var now = new Date().getTime(),
-                    z = this,
-                    interval = now - this.lastTime;
-                if(interval>150){
-                    this.lastTime  = now;
-                    if(typeof this.opt.source === 'function'){
-                        /*datasorce 为异步函数 */
 
-                    }else if(typeof this.opt.source === 'object'){
-                        /*datasource 为数组*/
-                        z._render(z._filter(this.opt.source,event.target.value));
-                    }
+        _change:function(event){
+            var now = new Date().getTime(),
+                z = this;
+                console.log(z);
+            if(typeof z.opt.source === 'function'){
+                /*datasorce 为异步函数 */
+                z.opt.source(event.target.value, z._response());
 
-                }
+
+            }else if(typeof z.opt.source === 'object'){
+                /*datasource 为数组*/
+                z._render(z._filter(this.opt.source,event.target.value));
             }
         },
 
         /*事件绑定*/
         _bindEvent:function(){
             this.lastTime = 0;
-            this.inputDom.addEventListener('keyup',this.Events._keyUp.bind(this),false);
+            this.inputDom.addEventListener('keyup', this.__change.bind(this),false);
+        },
+        __change:function(event){
+            var z = this;
+            z.isChange = z._delay(z.isChange,function(){
+                z._change(event);
+            })
         },
 
         /*初始化*/
@@ -76,17 +87,30 @@ com.diigo.Search= (function(){
             this._buildSearch();
             this._bindEvent();
 
-            console.log(this);
+//            console.log(this);
             return this.inputDom;
         },
 
         /*私有方法*/
+        _response:function(){
+            var z = this;
+            return function(ar_){
+                z._render(ar_);
+            }
+        },
+        _delay:function(id_,fn){
+            var z = this;
+            if(id_) clearTimeout(id_);
+            var id = setTimeout(fn, z.opt.delay);
+            return id;
+        }
+        ,
 
         _buildSearch:function(){
             var html =
                 '<div id="diigo_a_search">' +
                 '<div class="d_s_type"></div>' +
-                '<input type="text" class="d_s_input" name="q" />' +
+                '<input type="text" class="d_s_input" name="q" autocomplete="off"/>' +
                 '<div class="d_s_seachicon"></div>' +
                 '<div class="d_s_autosuggess" style="position: absolute;width: 300px;left: 50px;background: rosybrown;min-height: 10px;"></div> ' +
                 '</div>';
@@ -115,6 +139,7 @@ com.diigo.Search= (function(){
             html+='</ul>';
             this.autoSuggestionsDom.innerHTML = html;
         },
+
 
 
         /*Filter 方法, from jquery*/
