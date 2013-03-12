@@ -130,13 +130,51 @@ com.diigo.Search= (function(){
             }
 
         },
+        __focusOut:function(event){
+            this.autoSuggestionsDom.style.display='none';
+            this.autoSuggestionsDom.innerHTML = "";
+        },
+        __typeClick:function(event){
+            var z = this;
+            if(this.typeSelectDom.style.display!='none'){
+                this.typeSelectDom.style.display = 'none';
+            }else{
+                this.typeSelectDom.style.display ='';
+            }
+        },
+        __typeSelect:function(event){
+            switch(event.target.id){
+                case 'd_s_tag_search':
+                    this.typeDom.textContent = 'Tag Search';
+                    this.typeDom.id = 'd_s_type_tag';
+                    break;
+                case 'd_s_meta_search':
+                    this.typeDom.textContent = 'Meta search';
+                    this.typeDom.id = 'd_s_type_meta';
+                    break;
+                case 'd_s_full_search':
+                    this.typeDom.textContent = 'Full Text Search';
+                    this.typeDom.id = 'd_s_type_full';
+                    break
+            }
+            this.typeSelectDom.style.display = 'none';
+        },
+        __suggestionSelect:function(event){
+            event.target.className='d_s_select';
+            this._Select(this.autoSuggestionsDom);
+            this.__focusOut();
+            this.inputDom.focus();
+        },
         /*事件绑定*/
 
         _bindEvent:function(){
             this.lastTime = 0;
             this.inputDom.addEventListener('input', this.__change.bind(this),false);
+//            this.inputDom.addEventListener('focusout',this.__focusOut.bind(this),false);
             this.Dom.addEventListener('keydown',this.__keyDown.bind(this),false);
-
+            this.typeDom.addEventListener('click',this.__typeClick.bind(this),false);
+            this.typeSelectDom.addEventListener('click',this.__typeSelect.bind(this),false);
+            this.autoSuggestionsDom.addEventListener('click',this.__suggestionSelect.bind(this),false);
         },
 
         /* UI select*/
@@ -144,7 +182,6 @@ com.diigo.Search= (function(){
             var selectDoms = dom.getElementsByClassName('d_s_select');
             var s_id = selectDoms[0].id;
             if(s_id=='d_s_meta' || s_id=='d_s_fulltext'){
-                console.log(this.lastInputValue);
                 this.inputDom.value = this.lastInputValue;
             }else{
                 var label = selectDoms[0].textContent; //Tags: xxxx
@@ -227,19 +264,16 @@ com.diigo.Search= (function(){
                 z._render(ar_);
             }
         },
-        _delay:function(id_,fn){
-            var z = this;
-            if(id_) clearTimeout(id_);
-            var id = setTimeout(fn, z.opt.delay);
-            return id;
-        },
+
 
         _buildSearch:function(){
             var html =
                 '<div id="diigo_a_search">' +
                 '<div class="d_s_type">Tag Search</div>' +
                     '<div class="d_s_typeselect" style="position: absolute;width: 150px;left: 0px;background:#c1c1c1;min-height: 10px;display: none">' +
-                        '<ul><li>Tag Search</li><li>Meta search</li><li>Full text search</li></ul>' +
+                        '<ul><li id="d_s_tag_search">Tag Search</li>' +
+                        '<li id="d_s_meta_search">Meta search</li>' +
+                        '<li id="d_s_full_search">Full text search</li></ul>' +
                     '</div>' +
                 '<input type="text" class="d_s_input" name="q" autocomplete="off"/>' +
                 '<div class="d_s_seachicon"></div>' +
@@ -247,7 +281,7 @@ com.diigo.Search= (function(){
                 '</div>';
             this.Dom.innerHTML = html;
             this.typeDom = this.getDom(".d_s_type",this.Dom);
-            this.typeSelectDom = this.getDom("._d_s_typeselect",this.Dom);
+            this.typeSelectDom = this.getDom(".d_s_typeselect",this.Dom);
             this.inputDom = this.getDom(".d_s_input",this.Dom);
             this.searchIconDom = this.getDom(".d_s_seachicon",this.Dom);
             this.autoSuggestionsDom = this.getDom(".d_s_autosuggess",this.Dom);
@@ -261,6 +295,8 @@ com.diigo.Search= (function(){
                 this.autoSuggestionsDom.style.display = "none";
                 return;
             }
+
+
             var html = '<ul>';
             for(var i= 0,len=value.length;i<len;i++){
                 html += "<li>Tags: "+value[i]+"</li>";
@@ -268,10 +304,35 @@ com.diigo.Search= (function(){
             html+='<li id="d_s_meta">Meta: '+inputText+' </li> ' +
                   '<li id="d_s_fulltext">Full text: '+inputText+'</li> ';
             html+='</ul>';
+
+            var meta ="",
+                full ="",
+                tags="";
+            for(var i = 0,len=value.length;i<len;i++){
+                tags +="<li>Tags: "+value[i]+"</li>";
+            }
+            if(this.typeSelectDom.id =='d_s_full_seach'){
+//                for()
+            }
+
+
+
             this.autoSuggestionsDom.innerHTML = html;
         },
 
+        _delay:function(id_,fn){
+            var z = this;
+            if(id_) clearTimeout(id_);
+            var id = setTimeout(fn, z.opt.delay);
+            return id;
+        },
 
+        _addClass:function(className,dom){
+
+        },
+        _removeClass:function(className,dom){
+
+        },
 
         /*Filter 方法, from jquery*/
 
