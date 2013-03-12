@@ -37,10 +37,13 @@ com.diigo.Search= (function(){
         Dom:null,
         inputDom:null,
         typeDom:null,
+        typeSelectDom:null,
         searchIconDom:null,
         autoSuggestionsDom:null,
         lastTime:0,
         isChange:null,
+        lastInputValue:null,
+
 
 
         /*Util functions*/
@@ -105,6 +108,7 @@ com.diigo.Search= (function(){
             var z = this;
             z.isChange = z._delay(z.isChange,function(){
                 z._change(event);
+                z.lastInputValue = z.inputDom.value;
             })
         },
         __keyDown:function(event){
@@ -114,8 +118,17 @@ com.diigo.Search= (function(){
             switch(event.keyCode){
                 case z.keyCode.DOWN:
                     z._Down(dom);
+                    event.preventDefault();
+                    break;
+                case z.keyCode.UP:
+                    z._Up(dom);
+                    event.preventDefault();
+                    break;
+                case z.keyCode.ENTER:
+//                    z._Select(dom);
                     break;
             }
+
         },
         /*事件绑定*/
 
@@ -123,17 +136,66 @@ com.diigo.Search= (function(){
             this.lastTime = 0;
             this.inputDom.addEventListener('input', this.__change.bind(this),false);
             this.Dom.addEventListener('keydown',this.__keyDown.bind(this),false);
+
         },
 
         /* UI select*/
+        _Select:function(dom){
+            var selectDoms = dom.getElementsByClassName('d_s_select');
+            var s_id = selectDoms[0].id;
+            if(s_id=='d_s_meta' || s_id=='d_s_fulltext'){
+                console.log(this.lastInputValue);
+                this.inputDom.value = this.lastInputValue;
+            }else{
+                var label = selectDoms[0].textContent; //Tags: xxxx
+                label = label.slice(6,label.length);
+                if(!!this.opt.multi===false){
+                    this.inputDom.value = label;
+                }else if(this.opt.multi===true){
+                    var tags = this.lastInputValue.split(" ");
+                    tags[tags.length-1] = label;
+                    this.inputDom.value = tags.join(" ");
+                }else{
+                    var tags = this.lastInputValue.split(this.opt.multi);
+                    tags[tags.length-1] = label;
+                    this.inputDom.value = tags.join(this.opt.multi);
+                }
+            }
+
+
+
+        },
+        _Up:function(dom){
+            if(!dom) return;
+            var lis = dom.getElementsByTagName('li'),
+                len = lis.length;
+            if(dom.getElementsByClassName('d_s_select').length<1){
+                dom.getElementsByTagName('li')[len-1].className="d_s_select";
+            }else{
+                var index = this.classIndexOfTags('d_s_select','li',dom);
+                if(index>0) index--;
+                else return;
+                dom.getElementsByClassName('d_s_select')[0].className = ""
+                lis[index].className = "d_s_select";
+            }
+            this._Select(dom);
+        },
+
         _Down:function(dom){
             if(!dom) return;
             if(dom.getElementsByClassName('d_s_select').length<1){
                 dom.getElementsByTagName('li')[0].className="d_s_select";
             }else{
-                var index = this.classIndexOfTags('d_s_select','li',dom);
-                console.log(index);
+                var index = this.classIndexOfTags('d_s_select','li',dom),
+                    lis = dom.getElementsByTagName('li'),
+                    len = lis.length;
+                if(index<len-1) index++;
+                else return;
+                dom.getElementsByClassName('d_s_select')[0].className = ""
+                lis[index].className = "d_s_select";
+
             }
+            this._Select(dom);
         },
 
         classIndexOfTags:function(className,tagName,dom){
@@ -175,13 +237,17 @@ com.diigo.Search= (function(){
         _buildSearch:function(){
             var html =
                 '<div id="diigo_a_search">' +
-                '<div class="d_s_type"></div>' +
+                '<div class="d_s_type">Tag Search</div>' +
+                    '<div class="d_s_typeselect" style="position: absolute;width: 150px;left: 0px;background:#c1c1c1;min-height: 10px;display: none">' +
+                        '<ul><li>Tag Search</li><li>Meta search</li><li>Full text search</li></ul>' +
+                    '</div>' +
                 '<input type="text" class="d_s_input" name="q" autocomplete="off"/>' +
                 '<div class="d_s_seachicon"></div>' +
                 '<div class="d_s_autosuggess" style="position: absolute;width: 300px;left: 50px;background: rosybrown;min-height: 10px;display: none"></div> ' +
                 '</div>';
             this.Dom.innerHTML = html;
             this.typeDom = this.getDom(".d_s_type",this.Dom);
+            this.typeSelectDom = this.getDom("._d_s_typeselect",this.Dom);
             this.inputDom = this.getDom(".d_s_input",this.Dom);
             this.searchIconDom = this.getDom(".d_s_seachicon",this.Dom);
             this.autoSuggestionsDom = this.getDom(".d_s_autosuggess",this.Dom);
