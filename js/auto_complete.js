@@ -72,8 +72,23 @@ com.diigo.Search= (function(){
             UP: 38
         },
         getDom:function(selector,dom_){
+            //TODO:
             var dom = dom_ || document;
             return dom.querySelector(selector);
+        },
+
+        _delay:function(id_,fn){
+            var z = this;
+            if(id_) clearTimeout(id_);
+            var id = setTimeout(fn, z.opt.delay);
+            return id;
+        },
+
+        _addClass:function(className,dom){
+
+        },
+        _removeClass:function(className,dom){
+
         },
 
         /*Events*/
@@ -140,6 +155,9 @@ com.diigo.Search= (function(){
                 this.typeSelectDom.style.display = 'none';
             }else{
                 this.typeSelectDom.style.display ='';
+                document.body.addEventListener('click',function(e){
+                    console.log(e.target);
+                },false);
             }
         },
         __typeSelect:function(event){
@@ -160,11 +178,21 @@ com.diigo.Search= (function(){
             this.typeSelectDom.style.display = 'none';
         },
         __suggestionSelect:function(event){
-            event.target.className='d_s_select';
+            var t = event.target,
+                li;
+            if(t.tagName=='SPAN'){
+                li = t.parentNode;
+            }else if(t.tagName=="LI"){
+                li = t;
+            }
+            this.autoSuggestionsDom.getElementsByClassName('d_s_select')[0].className = ""
+            li.className='d_s_select';
             this._Select(this.autoSuggestionsDom);
             this.__focusOut();
             this.inputDom.focus();
+            event.preventDefault();
         },
+
         /*事件绑定*/
 
         _bindEvent:function(){
@@ -180,27 +208,23 @@ com.diigo.Search= (function(){
         /* UI select*/
         _Select:function(dom){
             var selectDoms = dom.getElementsByClassName('d_s_select');
-            var s_id = selectDoms[0].id;
-            if(s_id=='d_s_meta' || s_id=='d_s_fulltext'){
-                this.inputDom.value = this.lastInputValue;
-            }else{
-                var label = selectDoms[0].textContent; //Tags: xxxx
-                label = label.slice(6,label.length);
-                if(!!this.opt.multi===false){
-                    this.inputDom.value = label;
-                }else if(this.opt.multi===true){
-                    var tags = this.lastInputValue.split(" ");
-                    tags[tags.length-1] = label;
-                    this.inputDom.value = tags.join(" ");
-                }else{
-                    var tags = this.lastInputValue.split(this.opt.multi);
-                    tags[tags.length-1] = label;
-                    this.inputDom.value = tags.join(this.opt.multi);
-                }
+            var label = selectDoms[0].getElementsByTagName('span')[0].textContent;
+            var type = selectDoms[0].getElementsByTagName('span')[0].className;
+            if(type=='d_s_meta' || type=='d_s_full'){
+                this.inputDom.value = label;
+                return;
             }
-
-
-
+            if(!!this.opt.multi===false){
+                this.inputDom.value = label;
+            }else if(this.opt.multi===true){
+                var tags = this.lastInputValue.split(" ");
+                tags[tags.length-1] = label;
+                this.inputDom.value = tags.join(" ");
+            }else{
+                var tags = this.lastInputValue.split(this.opt.multi);
+                tags[tags.length-1] = label;
+                this.inputDom.value = tags.join(this.opt.multi);
+            }
         },
         _Up:function(dom){
             if(!dom) return;
@@ -297,42 +321,57 @@ com.diigo.Search= (function(){
             }
 
 
-            var html = '<ul>';
-            for(var i= 0,len=value.length;i<len;i++){
-                html += "<li>Tags: "+value[i]+"</li>";
-            }
-            html+='<li id="d_s_meta">Meta: '+inputText+' </li> ' +
-                  '<li id="d_s_fulltext">Full text: '+inputText+'</li> ';
-            html+='</ul>';
 
+
+
+            var html = '<ul>';
+//            for(var i= 0,len=value.length;i<len;i++){
+//                html += "<li>Tags: <span class='d_s_tag'>"+value[i]+"</span></li>";
+//            }
+//            html+='<li>Meta: <span class="d_s_meta">'+inputText+'</span> </li> ' +
+//                  '<li>Full text: <span class="d_s_full">'+inputText+'</span></li> ';
+//            html+='</ul>';
+//
             var meta ="",
                 full ="",
                 tags="";
             for(var i = 0,len=value.length;i<len;i++){
-                tags +="<li>Tags: "+value[i]+"</li>";
-            }
-            if(this.typeSelectDom.id =='d_s_full_seach'){
-//                for()
+                tags +="<li>Tags: <span class='d_s_tag'>"+value[i]+"</span></li>";
             }
 
+            var words = inputText.split(" ");
+            delete words[words.length-1];
+            words = words.join(" ");
+            if(this.typeDom.id =='d_s_type_full'){
+                full +="<li>Full text: <span class='d_s_full'>"+inputText+"</span></li>";
+                for(var i= 0,len=value.length;i<len;i++){
+                    full+="<li>Full text: <span class='d_s_full'>"+words+" "+value[i]+"</span></li>"
+                }
+            }else{
+                full = "<li>Full text: <span class='d_s_full'>"+inputText+"</span></li>";
+            }
 
+            if(this.typeDom.id == 'd_s_type_meta'){
+                meta +='<li>Meta: <span class="d_s_meta">'+inputText+'</span> </li> ';
+                for(var i= 0,len=value.length;i<len;i++){
+                    meta+="<li>Meta: <span class='d_s_meta'>"+words+" "+value[i]+"</span></li>"
+                }
+            }else{
+                meta ='<li>Meta: <span class="d_s_meta">'+inputText+'</span> </li> ';
+            }
+            if(this.typeDom.id =='d_s_type_full'){
+                html += full+tags+meta;
+            }else if(this.typeDom.id =='d_s_type_meta'){
+                html += meta+tags+full;
+            }else{
+                html += tags+meta+full;
+            }
+            html+='</ul>';
 
             this.autoSuggestionsDom.innerHTML = html;
         },
 
-        _delay:function(id_,fn){
-            var z = this;
-            if(id_) clearTimeout(id_);
-            var id = setTimeout(fn, z.opt.delay);
-            return id;
-        },
 
-        _addClass:function(className,dom){
-
-        },
-        _removeClass:function(className,dom){
-
-        },
 
         /*Filter 方法, from jquery*/
 

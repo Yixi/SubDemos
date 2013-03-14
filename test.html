@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="js/jquery-1.9.1.min.js"></script>
+    <script src="js/jquery.diigo.search.js"></script>
+    <style>
+        .diigols{
+            border: 1px solid #c1c1c1;
+            display: none;
+        }
+        .diigols ul{
+            padding: 0px;
+        }
+        .diigols ul li{
+            list-style: none;
+            padding: 2px 5px;
+        }
+        .diigols ul li.selected{
+            background: green;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div id="result"></div>
+<input id="search" />
+
+<script type="text/javascript">
+    var a = ["abc","bcd","df","diigo","delecios","android","iphone"];
+    $('#search').DiigoLSearch({
+        data:a
+//        data:function(request,response){
+//            var b=[];
+//            for(var i=0;i<=5;i++){
+//                b.push(request + "_"+i);
+//            }
+//            setTimeout(function(){response(b)},1000);
+//        }
+    });
+</script>
+</body>
+</html>
