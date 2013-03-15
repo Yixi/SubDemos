@@ -139,7 +139,10 @@
                     });
 
                 }
-            })
+            });
+        var top = this.typeView.offset().top + this.typeView.outerHeight();
+        var left =this.typeView.offset().left;
+        this.TypeSelectView.css("top",top+1+"px").css("left",left-1+"px").css('position',"absolute");
     }
 
     var _setupSuggestionView = function(){
@@ -207,6 +210,7 @@
         var top = this.inputView.offset().top + this.inputView.outerHeight();
         var left =this.inputView.offset().left;
         this.SuggestionView.css("top",top+"px").css("left",left+"px").css('position',"absolute");
+
     }
 
     var _showSuggestionView = function(result){
