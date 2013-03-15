@@ -5,20 +5,49 @@
     <script src="js/jquery-1.9.1.min.js"></script>
     <script src="js/jquery.diigo.search.js"></script>
     <style>
-        .diigols{
+        #search{
+            width: 300px;
+            height: 24px;
+            line-height: 24px;
+        }
+        .diigols_box{
+            display: inline-block;
+            border: 1px solid #000;
+            padding: 0;
+            margin: 0;
+        }
+        .diigols_box .diigols{
             border: 1px solid #c1c1c1;
             display: none;
         }
-        .diigols ul{
+        .diigols_box .dls_type{
+            border-right: 1px solid #000;
+            background: gainsboro;
+            width: 45px;
+            float: left;
+        }
+        .diigols_box .dls_icon{
+            float: right;
+            width: 30px;
+            background: red;
+        }
+
+        .dls_list{
+            border: 1px solid #d8d8d8;
+        }
+        .dls_list ul{
             padding: 0px;
         }
-        .diigols ul li{
+        .dls_list ul li{
             list-style: none;
             padding: 2px 5px;
         }
-        .diigols ul li.selected{
+        .dls_list ul li.selected{
             background: green;
             color: #fff;
+        }
+        .dls_type_list{
+            width: 150px;
         }
     </style>
 </head>
@@ -29,7 +58,8 @@
 
 <script type="text/javascript">
     var a = ["abc","bcd","df","diigo","delecios","android","iphone"];
-    $('#search').DiigoLSearch({
+    var c=$('#search').DiigoLSearch({
+        mutil:true,
         data:a
 //        data:function(request,response){
 //            var b=[];
