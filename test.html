@@ -5,64 +5,207 @@
     <script src="js/jquery-1.9.1.min.js"></script>
     <script src="js/jquery.diigo.search.js"></script>
     <style>
-        #search{
-            width: 300px;
-            height: 24px;
-            line-height: 24px;
+        *{
+            padding:0;
+            margin: 0;
+            outline: 0;
+
+        }
+        #DiigoLibrarySearch{
+            width: 310px;
+            height: 30px;
+            *line-height: 30px;
+            line-height: 30px\0;  /*IE 8 hack*/
+            font-size: 14px;
+            padding: 0 10px;
+            color: #5a5a5a;
+            outline: none;
+
         }
         .diigols_box{
             display: inline-block;
-            border: 1px solid #000;
+            _zoom:1;
+            /*display: inline;*/
+            *float: left;
+            border: 1px solid #aaaaaa;
+            width: 395px;
+            background: #fff;
+            border-radius: 4px;
             padding: 0;
             margin: 0;
+            text-align: left;
+            color: #5a5a5a;
         }
         .diigols_box .diigols{
             border: 1px solid #c1c1c1;
             display: none;
         }
         .diigols_box .dls_type{
-            border-right: 1px solid #000;
-            background: gainsboro;
-            width: 45px;
+            border-right: 1px solid #aaaaaa;
+            width: 30px;
             float: left;
+            font-size: 14px;
         }
-        .diigols_box .dls_icon{
+        .diigols_box .dls_type span{
+            /*padding: 1px 0;*/
+            margin-left: 7px;
+            height: 16px;
+            width: 16px;
+            margin-top: 7px;
+            float: left;
+            opacity: .5;
+            filter:alpha(opacity=50);
+        }
+        .diigols_box .dls_type#dls_type_tag span{
+            background:url(images/tag-t-m.png) no-repeat ;
+        }
+        .diigols_box .dls_type#dls_type_meta span{
+            background:url(images/tag-t-m.png) -32px no-repeat ;
+        }
+        .diigols_box .dls_type#dls_type_full span{
+            background:url(images/tag-t-m.png) -16px no-repeat ;
+        }
+        .diigols_box .dls_adv{
             float: right;
             width: 30px;
-            background: red;
+            text-align: center;
+        }
+
+        .diigols_box .dls_adv b{
+            width: 21px;
+            height: 21px;
+            float: left;
+            margin-top: 4px;
+            margin-left: 4px;
+            background: url(images/dls_adv.png) left 0 no-repeat;
+        }
+        .diigols_box .dls_adv:hover b{
+            background: url(images/dls_adv.png) left -21px no-repeat;
+        }
+        .diigols_box .dls_adv.dls_adv_show b{
+            background: url(images/dls_adv.png) left -42px no-repeat;
+        }
+
+        .diigols_box .dls_adv:hover,.diigols_box .dls_type:hover{
+            cursor: pointer;
         }
 
         .dls_list{
-            border: 1px solid #d8d8d8;
+            border: 1px solid #aaaaaa;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.3);
+            padding: 6px 0;
         }
         .dls_list ul{
             padding: 0px;
         }
         .dls_list ul li{
             list-style: none;
-            padding: 2px 5px;
+            padding: 2px 10px;
+            text-align: left;
+            color: #5a5a5a;
         }
         .dls_list ul li:hover{
             cursor: pointer;
         }
         .dls_list ul li.selected{
-            background: green;
-            color: #fff;
+            background: #e8e8e8;
         }
+        .dls_list span.dls_tag_icon{
+            background:url(images/tag-t-m.png) no-repeat ;
+        }
+        .dls_list span.dls_meta_icon{
+            background:url(images/tag-t-m.png) -32px no-repeat ;
+        }
+        .dls_list span.dls_full_icon{
+            background:url(images/tag-t-m.png) -16px no-repeat ;                                                                              5
+        }
+
         .dls_type_list{
-            width: 150px;
+            width: 160px;
         }
+        .dls_type_list ul li{
+            height: 28px;
+            line-height: 28px;
+        }
+        .dls_type_list ul li span{
+            width: 16px;
+            height: 16px;
+            float: left;
+            filter:alpha(opacity=50);
+            opacity: .5;
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+
+        .dls_suggestion_list span.dls_tag_icon,.dls_suggestion_list span.dls_meta_icon,.dls_suggestion_list span.dls_full_icon{
+            width: 16px;
+            height: 16px;
+            float: left;
+            margin-top: 2px;
+            opacity: .5;
+            filter:alpha(opacity=50);
+            margin-right: 10px;
+        }
+        .dls_suggestion_list hr{
+            color: #aaaaaa;
+            height: 1px;
+            border: 0;
+            background: #aaaaaa;
+        }
+
+        .dls_advpanel{
+            text-align: left;
+        }
+        .dls_advpanel div{
+            padding:0px 20px;
+            color: #5a5a5a;
+            margin: 10px 0;
+        }
+        .dls_advpanel div p{
+            margin-bottom: 3px;
+        }
+        .dls_advpanel div input{
+            width: 100%;
+            height: 24px;
+            border: 1px solid #aaaaaa;
+            border-radius: 4px;
+        }
+        .dls_advpanel .dls_advpanel_title{
+            text-align: center;
+        }
+        .dls_advpanel .dls_advpanel_search{
+            text-align: center;
+        }
+        .dls_advpanel .dls_advpanel_search a.dls_search{
+            width: 98px;
+            height: 28px;
+            float: left;
+            margin-left: 130px;
+            background: url(images/dls_adv_search.png) left 0 no-repeat;
+        }
+        .dls_advpanel .dls_advpanel_search a.dls_search:hover{
+            background: url(images/dls_adv_search.png) left -28px no-repeat;
+        }
+        .dls_advpanel .dls_advpanel_search a.dls_search:active{
+            background: url(images/dls_adv_search.png) left -56px no-repeat;
+        }
+
     </style>
 </head>
 <body>
 
 <div id="result"></div>
-<input id="search" />
+<input id="DiigoLibrarySearch" />
 
 <script type="text/javascript">
     var a = ["abc","bcd","df","diigo","delecios","android","iphone"];
-    var c=$('#search').DiigoLSearch({
+    var c=$('#DiigoLibrarySearch').DiigoLSearch({
         mutil:true,
+        complete:function(key){
+          console.log(key);
+        },
         data:a
 //        data:function(request,response){
 //            var b=[];
