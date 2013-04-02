@@ -198,13 +198,13 @@
 
 <div id="result"></div>
 <input id="DiigoLibrarySearch" />
-
+<div id="output" style="padding-left: 400px"></div>
+<script src="js/data.js"></script>
 <script type="text/javascript">
-    var a = ["abc","bcd","df","diigo","delecios","android","iphone"];
     var c=$('#DiigoLibrarySearch').DiigoLSearch({
         mutil:true,
         complete:function(key){
-          console.log(key);
+          document.getElementById('output').innerHTML="type:"+key.type+"<br/>"+key.value;
         },
         data:a
 //        data:function(request,response){
@@ -215,6 +215,10 @@
 //            setTimeout(function(){response(b)},1000);
 //        }
     });
+
+    //for test
+
+//    $("#DiigoLibrarySearch").val("allfield tag:(tag filed) full:(full field) url:(url field) title:(title filed) des:(des field) h:(hi field)");
 </script>
 </body>
 </html>

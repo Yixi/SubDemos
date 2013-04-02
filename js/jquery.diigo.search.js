@@ -66,6 +66,8 @@
                         break;
                     default:
                         _suggestion.apply(that);
+                        _anaMetaFiled.apply(that);
+                        _anaTagsFiled.apply(that);
                 }
             })
             .keydown(this._keydown = function(event){
@@ -139,14 +141,17 @@
                     case 'tag':
                         that.typeView.attr('id','dls_type_tag');
                         _fillAdvancePanel.apply(that,['tag']);
+                        _anaTagsFiled.apply(that);
                         break;
                     case 'meta':
                         that.typeView.attr('id','dls_type_meta');
-                        _fillAdvancePanel.apply(that);
+                        _fillAdvancePanel.apply(that,['meta']);
+                        _anaMetaFiled.apply(that);
                         break;
                     case 'full':
                         that.typeView.attr('id','dls_type_full');
-                        _fillAdvancePanel.apply(that);
+                        _fillAdvancePanel.apply(that,['full']);
+                        _anaMetaFiled.apply(that);
                         break;
                 }
             })
@@ -175,6 +180,85 @@
         var that =this;
         this.adVancePanel = $('<div class="dls_advpanel dls_list"></div>').appendTo(document.body).hide();
 
+        this.adVancePanel
+            .on('input','input',function(e){
+                if(that.adVancePanel.is('.dls_tag')){
+                    var _and,
+                        _or,__or=[],
+                        _not,__not=[];
+
+                    var andtext = that.adVancePanel.find('input[name=tagAND]').val();
+                    var ortext = that.adVancePanel.find('input[name=tagOR]').val();
+                    var nottext = that.adVancePanel.find('input[name=tagNOT]').val();
+
+                    _and = _parseTags.apply(that,[andtext]);
+                    _or = _parseTags.apply(that,[ortext]);
+                    _not = _parseTags.apply(that,[nottext]);
+                    for(var i= 0,len=_or.length;i<len;i++){
+                        __or.push('OR');
+                        __or.push(_or[i]);
+                    }
+                    for(var i= 0,len=_not.length;i<len;i++){
+                        __not.push("NOT");
+                        __not.push(_not[i]);
+                    }
+
+                    var field = _unparseTags.apply(that,[_and.concat(__or,__not)]);
+
+                    that.inputView.val(field);
+
+                    __not.length=0;
+                    _not.length=0;
+                    __or.length=0;
+                    _or.length=0;
+                    _and.length=0;
+
+                }else{
+                    var alltext = $.trim(that.adVancePanel.find('input[name=all]').val()),
+                        tagtext = $.trim(that.adVancePanel.find('input[name=tag]').val()),
+                        urltext = $.trim(that.adVancePanel.find('input[name=URL]').val()),
+                        titletext = $.trim(that.adVancePanel.find('input[name=title]').val()),
+                        destext = $.trim(that.adVancePanel.find('input[name=description]').val()),
+                        highlighttext = $.trim(that.adVancePanel.find('input[name=highlights]').val());
+                    if(that.adVancePanel.is('.dls_full'))
+                        var fulltext = $.trim(that.adVancePanel.find('input[name=fulltext]').val());
+
+                    var field = (alltext.length>0 ? alltext+" ":"")
+                            + (tagtext.length>0 ? "tag:("+tagtext+") ":"")
+                            + (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "full:("+fulltext+") " : ""):"")
+                            + (urltext.length>0 ? "url:("+urltext+") ":"")
+                            + (titletext.length>0 ? "title:("+titletext+") ":"")
+                            + (destext.length>0 ? "des:("+destext+") ":"")
+                            + (highlighttext.length>0 ? "h:("+highlighttext+") ":"");
+
+                    that.inputView.val(field);
+
+                }
+
+            })
+            .keydown(this._keydown = function(event){
+                if(event.keyCode==13){// enter
+                    var json = {
+                        "type": that.typeView && that.typeView.attr('id').replace('dls_type_',""),
+                        "value":that.inputView.val()
+                    };
+                    if($.isFunction(that.option.complete)){
+                        that.option.complete(json);
+                    }
+                }
+            })
+            .on("click",".dls_advpanel_search",function(e){
+                var json = {
+                    "type": that.typeView && that.typeView.attr('id').replace('dls_type_',""),
+                    "value":that.inputView.val()
+                };
+                if($.isFunction(that.option.complete)){
+                    that.option.complete(json);
+                }
+            });
+
+
+
         this.advanceIcon
             .click(function(e){
 //                if(that.adVancePanel.is(':visible')){
@@ -189,7 +273,12 @@
 //                }
                 that.adVancePanel.toggle();
                 $(this).toggleClass('dls_adv_show');
+                _anaTagsFiled.apply(that);
+                _anaMetaFiled.apply(that);
             });
+
+
+
 
         var top = this.SearchPanel.offset().top + this.SearchPanel.outerHeight();
         var left = this.SearchPanel.offset().left;
@@ -198,26 +287,144 @@
     }
 
     var _fillAdvancePanel = function(type){
-        var m_f = '<div class="dls_advpanel_title">Advanced Search</div>' +
+        var metapanel = '<div class="dls_advpanel_title">Advanced Search</div>' +
+            '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
+            '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
+            '<div><p>URL</p><p><input type="text" name="URL"/></p></div>' +
+            '<div><p>Title</p><p><input type="text" name="title"/></p></div>' +
+            '<div><p>Description</p><p><input type="text" name="description"/></p></div>' +
+            '<div><p>Highlights</p><p><input type="text" name="highlights"/></p></div>' +
+            '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>';
+
+        var fullpanel = '<div class="dls_advpanel_title">Advanced Search</div>' +
+            '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
             '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
             '<div><p>Full text</p><p><input type="text" name="fulltext"/></p></div>' +
             '<div><p>URL</p><p><input type="text" name="URL"/></p></div>' +
             '<div><p>Title</p><p><input type="text" name="title"/></p></div>' +
-            '<div><p>Description</p><p><input type="text" name="description00"/></p></div>' +
+            '<div><p>Description</p><p><input type="text" name="description"/></p></div>' +
             '<div><p>Highlights</p><p><input type="text" name="highlights"/></p></div>' +
-            '<div><p>Without the words</p><p><input type="text" name="without"/></p></div>' +
             '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>';
+
         var tagpanel = '<div class="dls_advpanel_title">Advanced Search</div>' +
             '<div><p>AND</p><p><input type="text" name="tagAND"/></p></div>' +
             '<div><p>OR</p><p><input type="text" name="tagOR" /></p></div>' +
             '<div><p>NOT</p><p><input type="text" name="tagNOT" /></p></div>' +
             '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>';
         if(type=='tag'){
-            this.adVancePanel.html(tagpanel).removeClass('dls_meta').addClass('dls_tag');
+            this.adVancePanel.html(tagpanel).removeClass('dls_meta dls_full').addClass('dls_tag');
+        }else if(type=='meta'){
+            this.adVancePanel.html(metapanel).removeClass('dls_tag dls_full').addClass('dls_meta');
         }else{
-            this.adVancePanel.html(m_f).removeClass('dls_tag').addClass('dls_meta');
+            this.adVancePanel.html(fullpanel).removeClass('dls_meta dls_full').addClass('dls_full');
         }
     }
+
+    _anaTagsFiled = function(){
+        var that = this;
+        if(this.adVancePanel.is('.dls_tag') && this.adVancePanel.is(':visible')){
+            var inputField = this.inputView.val();
+            var tags = _parseTags.apply(that,[inputField]);
+            var flag = 0; //0 is AND ; 1 is OR; -1 is NOT;
+            var _and = [],
+                _or = [],
+                _not = [];
+            for(var i= 0,len=tags.length;i<len;i++){
+                switch(tags[i]){
+                    case 'OR':
+                        flag=1;
+                        break;
+                    case 'NOT':
+                        flag=-1;
+                        break;
+                    default :
+                        if(flag==1){
+                            _or.push(tags[i]);
+                        }else if(flag==-1){
+                            _not.push(tags[i]);
+                        }else{
+                            _and.push(tags[i]);
+                        }
+                        flag=0;
+                        break;
+                }
+            }
+            this.adVancePanel.find('input[name=tagAND]').val(_unparseTags.apply(that,[_and]));
+            this.adVancePanel.find('input[name=tagOR]').val(_unparseTags.apply(that,[_or]));
+            this.adVancePanel.find('input[name=tagNOT]').val(_unparseTags.apply(that,[_not]));
+        }
+    }
+
+    _anaMetaFiled =function(){
+        var that = this;
+        if((this.adVancePanel.is('.dls_meta') || this.adVancePanel.is('.dls_full')) && this.adVancePanel.is(":visible")){
+            var inputFiled = $.trim(that.inputView.val());
+            var FLAGS = ["tag:","full:","url:","title:","des:","h:"];
+            var r={};
+            r["f_0"]=[];  //tag
+            r["f_1"]=[];  //full
+            r["f_2"]=[];  //url
+            r["f_3"]=[];  //title
+            r["f_4"]=[];  //des
+            r["f_5"]=[];  //h
+            r["f_6"]=[];  //all
+            var stack = [],_flag = "all",begin_flag = false;
+
+            for(var i= 0,len=inputFiled.length,c;c=inputFiled.charAt(i),i<len;i++){
+                if(c=="("){
+                    begin_flag=true;
+                }else if(c==")"){
+                    begin_flag = false;
+                    _flag="all";
+                }else{
+                    if(begin_flag){
+                        var _i = FLAGS.indexOf(_flag);
+                        if(_i<0) _i=6;
+                        r["f_"+_i].push(c);
+                    }else{
+                        if(/\s/.test(c)){
+                            var _i = FLAGS.indexOf(_flag);
+                            if(_i<0) _i=6;
+                            r["f_"+_i].push(stack.join('')+" ");
+                            stack.length=0;
+                            _flag="all";
+                        }else{
+                            stack.push(c)
+                            var _index = FLAGS.indexOf(stack.join(''));
+                            if(_index>-1){
+                                _flag = stack.join('');
+                                stack.length=0;
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            clearStack();
+            console.log(r);
+            this.adVancePanel.find('input[name=all]').val($.trim(r["f_6"].join('').replace(/\s+/g," ")));
+            this.adVancePanel.find('input[name=tag]').val($.trim(r["f_0"].join('').replace(/\s+/g," ")));
+            this.adVancePanel.find('input[name=URL]').val($.trim(r["f_2"].join('').replace(/\s+/g," ")));
+            this.adVancePanel.find('input[name=title]').val($.trim(r["f_3"].join('').replace(/\s+/g," ")));
+            this.adVancePanel.find('input[name=description]').val($.trim(r["f_4"].join('').replace(/\s+/g," ")));
+            this.adVancePanel.find('input[name=highlights]').val($.trim(r["f_5"].join('').replace(/\s+/g," ")));
+            if(that.adVancePanel.is('.dls_full'))
+                this.adVancePanel.find('input[name=fulltext]').val($.trim(r["f_1"].join('').replace(/\s+/g," ")));
+
+            function clearStack(){
+                if(stack.length>0){
+                    var _i = FLAGS.indexOf(_flag);
+                    if(_i<0) _i=6;
+                    r["f_"+_i].push(" "+stack.join(''));
+                    stack.length=0;
+                    _flag="all";
+                }
+            }
+
+        }
+    }
+
 
     var _setupSuggestionView = function(){
         var that = this;
@@ -270,25 +477,27 @@
             full="";
 
         //TODO: maybe need to support the option mutil value spliter;
-        var words = this.inputView.val().split(" ");
-        var lastwords = words[words.length-1];
-        delete words[words.length-1];
-        words = words.join(" ");
+        var words = _parseTags.apply(this,[this.inputView.val()]);
+
+        var lastwords =words[words.length-1];
+        var showforlast = _unparseTags.apply(this,[[lastwords]]);
+        words.length = words.length-1;
+        words = _unparseTags.apply(this,[words]);
 
         if(!!this.option.mutil===false) {
             lastwords = this.inputView.val();
             words="";
         }
 
-        meta +='<li val="'+lastwords+'"><div><span class="dls_meta_icon"></span>'+((that.typeView.attr('id')=="dls_type_meta")?'':'Meta:')+'<span>'+words+" "+lastwords+'</span></div></li> ';
-        full +='<li val="'+lastwords+'"><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'':'Full Text:')+'<span>'+words+" "+lastwords+'</span></div></li> ';
-        tags +='<li val="'+lastwords+'"><div><span class="dls_tag_icon"></span>'+((that.typeView.attr('id')=="dls_type_tag")?'':'Tag:')+'<span>'+words+" "+lastwords+'</span></div></li> ';
+        meta +='<li val=\''+lastwords+'\'><div><span class="dls_meta_icon"></span>'+((that.typeView.attr('id')=="dls_type_meta")?'':'Meta:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
+        full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'':'Full Text:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
+        tags +='<li val=\''+lastwords+'\'><div><span class="dls_tag_icon"></span>'+((that.typeView.attr('id')=="dls_type_tag")?'':'Tag:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
         $.each(result,function(index,data){
 //            var item = $("<li><div></div></li>").appendTo(container).attr("val",data).find("div");
 //            item.append("<span>"+data+"</span>");
 //
             if(that.typeView.attr('id')=="dls_type_tag")
-                tags += '<li val="'+data+'"><div><span class="dls_tag_icon"></span><span>'+data+'</span></div></li>';
+                tags += '<li val=\''+data+'\'><div><span class="dls_tag_icon"></span><span>'+data+'</span></div></li>';
             if(that.typeView.attr('id')=="dls_type_meta")
                 meta += '<li val="'+data+'"><div><span class="dls_meta_icon"></span><span>'+words+" "+data+'</span></div></li>';
             if(that.typeView.attr('id')=="dls_type_full")
@@ -366,11 +575,8 @@
 
         if(!!this.option.mutil===false){
             keyword = this.inputView.val();
-        }else if(this.option.mutil===true){
-            var vals = this.inputView.val().split(" ");
-            keyword = vals[vals.length-1];
         }else{
-            var vals = this.inputView.val().split(this.option.mutil);
+            var vals = _parseTags.apply(this,[this.inputView.val()]);
             keyword = vals[vals.length-1];
         }
         if($.trim(keyword).length==0){
@@ -390,16 +596,72 @@
             if(!!this.option.mutil ===false){
                 this.inputView.val(selected.attr('val'));
             }else if(this.option.mutil===true){
-                var vals = this.inputView.val().split(" ");
+                var vals = _parseTags.apply(this,[this.inputView.val()]);
                 vals[vals.length-1] = selected.attr('val');
-                this.inputView.val(vals.join(" "));
+                this.inputView.val(_unparseTags.apply(this,[vals]));
             }else{
-                var vals = this.inputView.val().split(this.option.mutil);
+                var vals = _parseTags.apply(this,[this.inputView.val()]);
                 vals[vals.length-1] = selected.attr('val');
-                this.inputView.val(vals.join(this.option.mutil));
+                this.inputView.val(_unparseTags.apply(this,[vals,this.options.mutil]));
             }
         }
     }
+
+    var _parseTags = function(strTags){
+        var stack = [],tags=[];
+        var begin_delimiter = false;
+
+        for(var i= 0,len=strTags.length,c;c = strTags.charAt(i),i<len;i++){
+            if(c=='"'){
+                if(!begin_delimiter)
+                    begin_delimiter = true;
+                else{
+                    begin_delimiter = false;
+                    clearStack();
+                }
+            }else{
+                if(begin_delimiter){
+                    stack.push(c);
+                }else{
+                    if(this.option.mutil===true)
+                       var con = /\s/.test(c);
+                    else
+                       var con = (c== this.option.mutil);
+                    if(con)
+                        clearStack();
+                    else
+                        stack.push(c);
+                }
+            }
+        }
+        clearStack();
+        return tags;
+        function clearStack(){
+            if(stack.length>0){
+                tags.push(stack.join(''));
+                stack.length=0;
+            }
+        }
+    }
+
+    var _unparseTags = function(tagArray,joinBy){
+        joinBy = joinBy || ' ';
+
+        return $.map(tagArray,function(t){return quoteTag(t);},this).join(joinBy);
+        function quoteTag(tag){
+            tag = tag
+                .replace(/"/g, "'")
+                .replace(/\s+/g, ' ')
+                .replace(/^\s+|\s+$/g, '');
+
+            if (tag.match(/\s+|,/)) {
+                tag = '"' + tag + '"';
+            }
+            return tag;
+        }
+    }
+
+
 
     var _escapeRegex = function(value){
         return value.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&");
