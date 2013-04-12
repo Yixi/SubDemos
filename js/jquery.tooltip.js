@@ -58,10 +58,10 @@
         var that = this;
         this.divView = $(div);
         this.divView
-            .on('mouseenter',function(){
+            .on('mouseenter',this._enter = function(){
                 that.tooltipView.show();
             })
-            .on('mouseleave',function(){
+            .on('mouseleave',this._out = function(){
                 that.tooltipView.hide();
             });
     }
@@ -69,7 +69,21 @@
     //Public method
 
     Controller.prototype.setOption = function(option){
+        if($.isPlainObject(option)){
+            this.option = $.extend(false,this.option,option);
+        }else if(typeof(option)==="string"){
+            switch(option){
+                case 'destroy':
+                    this.destory();
+                    break
+            }
+        }
+    }
 
+    Controller.prototype.destory = function(){
+        this.tooltipView.remove();
+        this.divView.unbind('mouseenter',this._enter).unbind('mouseleave',this._out);
+        delete this.divView.get(0).controller;
     }
 
 })(jQuery);
