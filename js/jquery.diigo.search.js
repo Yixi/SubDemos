@@ -30,6 +30,7 @@
             "maxHeight":null,
             "itemHeight":null,
             "type":"Library",   //Library(advance search panel)  | Global  | null(only auto complete)
+            "dtype":"tag",      // Default search type    "tag"/"full"/"meta"
             //data
             "data":[],
             "maxItems":10,
@@ -105,6 +106,10 @@
         if(this.option.type==="Library"){
             _setupLibrarySearchPanel.apply(that);
         }
+
+        $(window).resize(function(){
+           _reLocateViews.apply(that);
+        });
     }
 
     var _setupLibrarySearchPanel = function(){
@@ -174,6 +179,16 @@
         var top = this.typeView.offset().top + this.typeView.outerHeight();
         var left =this.typeView.offset().left;
         this.TypeSelectView.css("top",top+"px").css("left",left-1+"px").css('position',"absolute");
+
+        if(this.option.dtype==="full"){
+            that.typeView.attr('id','dls_type_full');
+            _fillAdvancePanel.apply(that,['full']);
+            _anaMetaFiled.apply(that);
+        }else if(this.option.dtype==="meta"){
+            that.typeView.attr('id','dls_type_meta');
+            _fillAdvancePanel.apply(that,['meta']);
+            _anaMetaFiled.apply(that);
+        }
     }
 
     var _setupAdvancePanel = function(){
@@ -228,7 +243,7 @@
                             + (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "full:("+fulltext+") " : ""):"")
                             + (urltext.length>0 ? "url:("+urltext+") ":"")
                             + (titletext.length>0 ? "title:("+titletext+") ":"")
-                            + (destext.length>0 ? "des:("+destext+") ":"")
+                            + (destext.length>0 ? "desc:("+destext+") ":"")
                             + (highlighttext.length>0 ? "h:("+highlighttext+") ":"");
 
                     that.inputView.val(field);
@@ -316,11 +331,11 @@
         }else if(type=='meta'){
             this.adVancePanel.html(metapanel).removeClass('dls_tag dls_full').addClass('dls_meta');
         }else{
-            this.adVancePanel.html(fullpanel).removeClass('dls_meta dls_full').addClass('dls_full');
+            this.adVancePanel.html(fullpanel).removeClass('dls_meta dls_tag').addClass('dls_full');
         }
     }
 
-    _anaTagsFiled = function(){
+    var _anaTagsFiled = function(){
         var that = this;
         if(this.adVancePanel.is('.dls_tag') && this.adVancePanel.is(':visible')){
             var inputField = this.inputView.val();
@@ -355,72 +370,39 @@
         }
     }
 
-    _anaMetaFiled =function(){
+    var _anaMetaFiled =function(){
         var that = this;
         if((this.adVancePanel.is('.dls_meta') || this.adVancePanel.is('.dls_full')) && this.adVancePanel.is(":visible")){
             var inputFiled = $.trim(that.inputView.val());
-            var FLAGS = ["tag:","full:","url:","title:","des:","h:"];
-            var r={};
-            r["f_0"]=[];  //tag
-            r["f_1"]=[];  //full
-            r["f_2"]=[];  //url
-            r["f_3"]=[];  //title
-            r["f_4"]=[];  //des
-            r["f_5"]=[];  //h
-            r["f_6"]=[];  //all
-            var stack = [],_flag = "all",begin_flag = false;
+            inputFiled = inputFiled.replace(/\s+/g," ");
+            var FLAGS = ["tag","full","url","title","desc","h"];
+            var r = {};
 
-            for(var i= 0,len=inputFiled.length,c;c=inputFiled.charAt(i),i<len;i++){
-                if(c=="("){
-                    begin_flag=true;
-                }else if(c==")"){
-                    begin_flag = false;
-                    _flag="all";
-                }else{
-                    if(begin_flag){
-                        var _i = FLAGS.indexOf(_flag);
-                        if(_i<0) _i=6;
-                        r["f_"+_i].push(c);
-                    }else{
-                        if(/\s/.test(c)){
-                            var _i = FLAGS.indexOf(_flag);
-                            if(_i<0) _i=6;
-                            r["f_"+_i].push(stack.join('')+" ");
-                            stack.length=0;
-                            _flag="all";
-                        }else{
-                            stack.push(c)
-                            var _index = FLAGS.indexOf(stack.join(''));
-                            if(_index>-1){
-                                _flag = stack.join('');
-                                stack.length=0;
-                            }
-                        }
-                    }
+            //all filed
+            var re_all = new RegExp("(?:("+FLAGS.join("|")+")\\s*:\\s*\\(\\s*)(.+?)(?:\\s*\\))|(?:("+FLAGS.join("|")+")\\s*:\\s*)(.+?)(?:\\s|$)","gi");
+            r.all = $.trim(inputFiled.replace(re_all,""));
+
+
+            for(var i= 0,len=FLAGS.length;i<len;i++){
+                var re = new RegExp("(?:"+FLAGS[i]+"\\s*:\\s*\\(\\s*)(.+?)(?:\\s*\\))|(?:"+FLAGS[i]+"\\s*:\\s*)(.+?)(?:\\s|$)","gi");
+                var result = re.exec(inputFiled);
+                r[FLAGS[i]]="";
+
+                while(result!=null){
+                    r[FLAGS[i]] += result[1]? result[1] : "";
+                    r[FLAGS[i]] += result[2]? result[2] : "";
+                    r[FLAGS[i]] +=" ";
+                    result = re.exec(inputFiled);
                 }
-
             }
-
-            clearStack();
-            console.log(r);
-            this.adVancePanel.find('input[name=all]').val($.trim(r["f_6"].join('').replace(/\s+/g," ")));
-            this.adVancePanel.find('input[name=tag]').val($.trim(r["f_0"].join('').replace(/\s+/g," ")));
-            this.adVancePanel.find('input[name=URL]').val($.trim(r["f_2"].join('').replace(/\s+/g," ")));
-            this.adVancePanel.find('input[name=title]').val($.trim(r["f_3"].join('').replace(/\s+/g," ")));
-            this.adVancePanel.find('input[name=description]').val($.trim(r["f_4"].join('').replace(/\s+/g," ")));
-            this.adVancePanel.find('input[name=highlights]').val($.trim(r["f_5"].join('').replace(/\s+/g," ")));
+            this.adVancePanel.find('input[name=all]').val($.trim(r['all']));
+            this.adVancePanel.find('input[name=tag]').val($.trim(r['tag']));
+            this.adVancePanel.find('input[name=URL]').val($.trim(r['url']));
+            this.adVancePanel.find('input[name=title]').val($.trim(r['title']));
+            this.adVancePanel.find('input[name=description]').val($.trim(r['desc']));
+            this.adVancePanel.find('input[name=highlights]').val($.trim(r['h']));
             if(that.adVancePanel.is('.dls_full'))
-                this.adVancePanel.find('input[name=fulltext]').val($.trim(r["f_1"].join('').replace(/\s+/g," ")));
-
-            function clearStack(){
-                if(stack.length>0){
-                    var _i = FLAGS.indexOf(_flag);
-                    if(_i<0) _i=6;
-                    r["f_"+_i].push(" "+stack.join(''));
-                    stack.length=0;
-                    _flag="all";
-                }
-            }
+                this.adVancePanel.find('input[name=fulltext]').val($.trim(r['full']));
 
         }
     }
@@ -551,6 +533,24 @@
 
     }
 
+    var _reLocateViews = function(){
+        if(this.option.type === 'Library'){
+            var s_top = this.SearchPanel.offset().top + this.SearchPanel.outerHeight();
+            var s_left = this.SearchPanel.offset().left;
+
+            var t_top = this.typeView.offset().top + this.typeView.outerHeight();
+            var t_left = this.typeView.offset().left;
+            this.TypeSelectView.css("top",t_top+"px").css("left",t_left-1+"px").css('position',"absolute");
+
+            this.adVancePanel.css("top",s_top-1+"px").css("left",s_left-1+"px").css('position',"absolute").css('width',_calcWidth.apply(this));
+
+        }else{
+            var s_top = this.inputView.offset().top + this.inputView.outerHeight();
+            var s_left =this.inputView.offset().left;
+        }
+        this.SuggestionView.css("top",s_top-1+"px").css("left",s_left+"px").css('position',"absolute");
+    }
+
     var _showSuggestionView = function(result){
         var that =this;
 
@@ -675,6 +675,8 @@
     }
     //Public method
 
+
+
     Controller.prototype.setOption = function(option){
         if($.isPlainObject(option)){
             this.option = $.extend(false,this.option,option);
@@ -686,9 +688,22 @@
                 case 'show':
                     this.show();
                     break;
+                case 'search':
+                    this.search();
+                    break;
             }
         }
     }
+    Controller.prototype.search = function(){
+        var that =this;
+        var json = {
+            "type": that.typeView && that.typeView.attr('id').replace('dls_type_',""),
+            "value":that.inputView.val()
+        };
+        if($.isFunction(that.option.complete)){
+            that.option.complete(json);
+        }
+    };
     Controller.prototype.destory = function(){
         this.SuggestionView.remove();
         this.inputView.unbind('keyup',this._keyup).unbind('keydown',this._keydown).unbind('blur',this._blur);
@@ -701,3 +716,6 @@
 
 
 })(jQuery);
+
+
+
