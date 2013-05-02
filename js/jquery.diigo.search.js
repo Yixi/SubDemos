@@ -591,6 +591,7 @@
     }
 
     var _select=function(){
+        var that =this;
         var selected = this.SuggestionView.find('li.selected');
         if(selected.length>0){
             if(!!this.option.mutil ===false){
@@ -605,8 +606,21 @@
                 this.inputView.val(_unparseTags.apply(this,[vals,this.options.mutil]));
             }
         }
+        if(selected.find("span.dls_tag_icon").length>0){
+//            that.typeView.attr('id','dls_type_tag');
+            that.typeView.attr('id','dls_type_tag');
+            _fillAdvancePanel.apply(that,['tag']);
+            _anaTagsFiled.apply(that);
+        }else if(selected.find("span.dls_meta_icon").length>0){
+            that.typeView.attr('id','dls_type_meta');
+            _fillAdvancePanel.apply(that,['meta']);
+            _anaMetaFiled.apply(that);
+        }else if(selected.find("span.dls_full_icon").length>0){
+            that.typeView.attr('id','dls_type_full');
+            _fillAdvancePanel.apply(that,['full']);
+            _anaMetaFiled.apply(that);
+        }
     }
-
     var _parseTags = function(strTags){
         var stack = [],tags=[];
         var begin_delimiter = false;
