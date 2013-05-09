@@ -39,8 +39,10 @@
             "delay":300,
 
             //complete
-            "complete":null
+            "complete":null,
 
+            //WARN the "father" for the advance panel to get the root input view;
+            "father":null
         },option);
 
         _setupView.apply(this,[input]);
@@ -67,8 +69,10 @@
                         break;
                     default:
                         _suggestion.apply(that);
-                        _anaMetaFiled.apply(that);
-                        _anaTagsFiled.apply(that);
+                        if(that.option.type=="Library"){
+                            _anaMetaFiled.apply(that);
+                            _anaTagsFiled.apply(that);
+                        }
                 }
             })
             .keydown(this._keydown = function(event){
@@ -94,6 +98,9 @@
                         if($.isFunction(that.option.complete)){
                             that.option.complete(json);
                         }
+                        break;
+                    case 9:
+                        _emptySuggestionView.apply(that);
                         break;
                 }
             })
@@ -197,59 +204,7 @@
 
         this.adVancePanel
             .on('input','input',function(e){
-                if(that.adVancePanel.is('.dls_tag')){
-                    var _and,
-                        _or,__or=[],
-                        _not,__not=[];
-
-                    var andtext = that.adVancePanel.find('input[name=tagAND]').val();
-                    var ortext = that.adVancePanel.find('input[name=tagOR]').val();
-                    var nottext = that.adVancePanel.find('input[name=tagNOT]').val();
-
-                    _and = _parseTags.apply(that,[andtext]);
-                    _or = _parseTags.apply(that,[ortext]);
-                    _not = _parseTags.apply(that,[nottext]);
-                    for(var i= 0,len=_or.length;i<len;i++){
-                        __or.push('OR');
-                        __or.push(_or[i]);
-                    }
-                    for(var i= 0,len=_not.length;i<len;i++){
-                        __not.push("NOT");
-                        __not.push(_not[i]);
-                    }
-
-                    var field = _unparseTags.apply(that,[_and.concat(__or,__not)]);
-
-                    that.inputView.val(field);
-
-                    __not.length=0;
-                    _not.length=0;
-                    __or.length=0;
-                    _or.length=0;
-                    _and.length=0;
-
-                }else{
-                    var alltext = $.trim(that.adVancePanel.find('input[name=all]').val()),
-                        tagtext = $.trim(that.adVancePanel.find('input[name=tag]').val()),
-                        urltext = $.trim(that.adVancePanel.find('input[name=URL]').val()),
-                        titletext = $.trim(that.adVancePanel.find('input[name=title]').val()),
-                        destext = $.trim(that.adVancePanel.find('input[name=description]').val()),
-                        highlighttext = $.trim(that.adVancePanel.find('input[name=highlights]').val());
-                    if(that.adVancePanel.is('.dls_full'))
-                        var fulltext = $.trim(that.adVancePanel.find('input[name=fulltext]').val());
-
-                    var field = (alltext.length>0 ? alltext+" ":"")
-                            + (tagtext.length>0 ? "tag:("+tagtext+") ":"")
-                            + (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "full:("+fulltext+") " : ""):"")
-                            + (urltext.length>0 ? "url:("+urltext+") ":"")
-                            + (titletext.length>0 ? "title:("+titletext+") ":"")
-                            + (destext.length>0 ? "desc:("+destext+") ":"")
-                            + (highlighttext.length>0 ? "h:("+highlighttext+") ":"");
-
-                    that.inputView.val(field);
-
-                }
-
+                _fillInput.apply(that);
             })
             .keydown(this._keydown = function(event){
                 if(event.keyCode==13){// enter
@@ -271,6 +226,7 @@
                     that.option.complete(json);
                 }
             });
+
 
 
 
@@ -301,38 +257,123 @@
         _fillAdvancePanel.apply(this,['tag']);
     }
 
+    var _fillInput = function(){
+        var that =this;
+        this.fillinput = _fillInput;
+        if(that.adVancePanel.is('.dls_tag')){
+            var _and,
+                _or,__or=[],
+                _not,__not=[];
+
+            var andtext = that.adVancePanel.find('input[name=tagAND]').val();
+            var ortext = that.adVancePanel.find('input[name=tagOR]').val();
+            var nottext = that.adVancePanel.find('input[name=tagNOT]').val();
+
+            _and = _parseTags.apply(that,[andtext]);
+            _or = _parseTags.apply(that,[ortext]);
+            _not = _parseTags.apply(that,[nottext]);
+            for(var i= 0,len=_or.length;i<len;i++){
+                __or.push('OR');
+                __or.push(_or[i]);
+            }
+            for(var i= 0,len=_not.length;i<len;i++){
+                __not.push("NOT");
+                __not.push(_not[i]);
+            }
+
+            var field = _unparseTags.apply(that,[_and.concat(__or,__not)]);
+
+            that.inputView.val(field);
+
+            __not.length=0;
+            _not.length=0;
+            __or.length=0;
+            _or.length=0;
+            _and.length=0;
+
+        }else{
+            var alltext = $.trim(that.adVancePanel.find('input[name=all]').val()),
+                tagtext = $.trim(that.adVancePanel.find('input[name=tag]').val()),
+                urltext = $.trim(that.adVancePanel.find('input[name=URL]').val()),
+                titletext = $.trim(that.adVancePanel.find('input[name=title]').val()),
+                destext = $.trim(that.adVancePanel.find('input[name=description]').val()),
+                highlighttext = $.trim(that.adVancePanel.find('input[name=highlights]').val());
+            if(that.adVancePanel.is('.dls_full'))
+                var fulltext = $.trim(that.adVancePanel.find('input[name=fulltext]').val());
+
+            var field = (alltext.length>0 ? alltext+" ":"")
+                + (tagtext.length>0 ? "tag:("+tagtext+") ":"")
+                + (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "full:("+fulltext+") " : ""):"")
+                + (urltext.length>0 ? "url:("+urltext+") ":"")
+                + (titletext.length>0 ? "title:("+titletext+") ":"")
+                + (destext.length>0 ? "desc:("+destext+") ":"")
+                + (highlighttext.length>0 ? "h:("+highlighttext+") ":"");
+
+            that.inputView.val(field);
+
+        }
+    }
+
+
     var _fillAdvancePanel = function(type){
         var that = this;
-        var metapanel = '<div class="dls_advpanel_title">Advanced Search</div>' +
-            '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
-            '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
-            '<div><p>URL</p><p><input type="text" name="URL"/></p></div>' +
-            '<div><p>Title</p><p><input type="text" name="title"/></p></div>' +
-            '<div><p>Description</p><p><input type="text" name="description"/></p></div>' +
-            '<div><p>Highlights</p><p><input type="text" name="highlights"/></p></div>' +
-            '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>';
+        if(this.adVancePanel.html().length<2){
+            var metapanel = '<div class="dls_meta_inner" style="display: none">'+
+                '<div class="dls_advpanel_title">Advanced Search</div>' +
+                '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
+                '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
+                '<div><p>URL</p><p><input type="text" name="URL"/></p></div>' +
+                '<div><p>Title</p><p><input type="text" name="title"/></p></div>' +
+                '<div><p>Description</p><p><input type="text" name="description"/></p></div>' +
+                '<div><p>Highlights</p><p><input type="text" name="highlights"/></p></div>' +
+                '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>' +
+                '</div>';
 
-        var fullpanel = '<div class="dls_advpanel_title">Advanced Search</div>' +
-            '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
-            '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
-            '<div><p>Full text</p><p><input type="text" name="fulltext"/></p></div>' +
-            '<div><p>URL</p><p><input type="text" name="URL"/></p></div>' +
-            '<div><p>Title</p><p><input type="text" name="title"/></p></div>' +
-            '<div><p>Description</p><p><input type="text" name="description"/></p></div>' +
-            '<div><p>Highlights</p><p><input type="text" name="highlights"/></p></div>' +
-            '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>';
+            var fullpanel = '<div class="dls_full_inner" style="display: none">'+
+                '<div class="dls_advpanel_title">Advanced Search</div>' +
+                '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
+                '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
+                '<div><p>Full text</p><p><input type="text" name="fulltext"/></p></div>' +
+                '<div><p>URL</p><p><input type="text" name="URL"/></p></div>' +
+                '<div><p>Title</p><p><input type="text" name="title"/></p></div>' +
+                '<div><p>Description</p><p><input type="text" name="description"/></p></div>' +
+                '<div><p>Highlights</p><p><input type="text" name="highlights"/></p></div>' +
+                '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>' +
+                '</div>';
 
-        var tagpanel = '<div class="dls_advpanel_title">Advanced Search</div>' +
-            '<div><p>AND</p><p><input type="text" name="tagAND"/></p></div>' +
-            '<div><p>OR</p><p><input type="text" name="tagOR" /></p></div>' +
-            '<div><p>NOT</p><p><input type="text" name="tagNOT" /></p></div>' +
-            '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>';
+            var tagpanel ='<div class="dls_tag_inner" style="display: none">'+
+                '<div class="dls_advpanel_title">Advanced Search</div>' +
+                '<div><p>AND</p><p><input type="text" name="tagAND"/></p></div>' +
+                '<div><p>OR</p><p><input type="text" name="tagOR" /></p></div>' +
+                '<div><p>NOT</p><p><input type="text" name="tagNOT" /></p></div>' +
+                '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>' +
+                '</div>';
+            this.adVancePanel.html(metapanel+fullpanel+tagpanel);
+
+            this.adVancePanel.find('input[name=tagAND],input[name=tagOR],input[name=tagNOT]').DiigoLSearch({
+                type:"panel",
+                data:that.option.data,
+                mutil:true,
+                father:this
+            })
+
+        }
+
         if(type=='tag'){
-            this.adVancePanel.html(tagpanel).removeClass('dls_meta dls_full').addClass('dls_tag');
+//            this.adVancePanel.html(tagpanel).removeClass('dls_meta dls_full').addClass('dls_tag');
+            this.adVancePanel.removeClass('dls_meta dls_full').addClass('dls_tag');
+            this.adVancePanel.find('.dls_full_inner,.dls_meta_inner').hide();
+            this.adVancePanel.find('.dls_tag_inner').show();
         }else if(type=='meta'){
-            this.adVancePanel.html(metapanel).removeClass('dls_tag dls_full').addClass('dls_meta');
+//            this.adVancePanel.html(metapanel).removeClass('dls_tag dls_full').addClass('dls_meta');
+            this.adVancePanel.removeClass('dls_tag dls_full').addClass('dls_meta');
+            this.adVancePanel.find('.dls_full_inner,.dls_tag_inner').hide();
+            this.adVancePanel.find('.dls_meta_inner').show();
         }else{
-            this.adVancePanel.html(fullpanel).removeClass('dls_meta dls_tag').addClass('dls_full');
+//            this.adVancePanel.html(fullpanel).removeClass('dls_meta dls_tag').addClass('dls_full');
+            this.adVancePanel.removeClass('dls_meta dls_tag').addClass('dls_full');
+            this.adVancePanel.find('.dls_tag_inner,.dls_meta_inner').hide();
+            this.adVancePanel.find('.dls_full_inner').show();
         }
 
 
@@ -564,13 +605,16 @@
 
     var _showSuggestionView = function(result){
         var that =this;
+        if(this.option.type!="Library" && result.length==0){
+            _emptySuggestionView.apply(that);
+        }else{
+            _createItems.apply(that,[result]);
+            _locateSuggestionView.apply(that)
 
-        _createItems.apply(that,[result]);
-        _locateSuggestionView.apply(that)
+            this.SuggestionView.css("width",_calcWidth.apply(this)+'px');
+            this.SuggestionView.show();
+        }
 
-        this.SuggestionView.css("width",_calcWidth.apply(this)+'px');
-
-        this.SuggestionView.show();
     }
 
     var _emptySuggestionView = function(){
@@ -617,19 +661,27 @@
                 this.inputView.val(_unparseTags.apply(this,[vals,this.options.mutil]));
             }
         }
-        if(selected.find("span.dls_tag_icon").length>0){
-//            that.typeView.attr('id','dls_type_tag');
-            that.typeView.attr('id','dls_type_tag');
-            _fillAdvancePanel.apply(that,['tag']);
-            _anaTagsFiled.apply(that);
-        }else if(selected.find("span.dls_meta_icon").length>0){
-            that.typeView.attr('id','dls_type_meta');
-            _fillAdvancePanel.apply(that,['meta']);
-            _anaMetaFiled.apply(that);
-        }else if(selected.find("span.dls_full_icon").length>0){
-            that.typeView.attr('id','dls_type_full');
-            _fillAdvancePanel.apply(that,['full']);
-            _anaMetaFiled.apply(that);
+        if(this.option.type=="Library"){
+            if(selected.find("span.dls_tag_icon").length>0){
+    //            that.typeView.attr('id','dls_type_tag');
+                that.typeView.attr('id','dls_type_tag');
+                _fillAdvancePanel.apply(that,['tag']);
+                _anaTagsFiled.apply(that);
+            }else if(selected.find("span.dls_meta_icon").length>0){
+                that.typeView.attr('id','dls_type_meta');
+                _fillAdvancePanel.apply(that,['meta']);
+                _anaMetaFiled.apply(that);
+            }else if(selected.find("span.dls_full_icon").length>0){
+                that.typeView.attr('id','dls_type_full');
+                _fillAdvancePanel.apply(that,['full']);
+                _anaMetaFiled.apply(that);
+            }
+        }else if(this.option.type=="panel"){
+//            _fillInput.apply(this);
+            if(this.option.father){
+                console.log(this.option.father);
+                this.option.father.fillinput.apply(this.option.father);
+            }
         }
     }
     var _parseTags = function(strTags){
