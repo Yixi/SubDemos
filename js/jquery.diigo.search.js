@@ -302,6 +302,7 @@
     }
 
     var _fillAdvancePanel = function(type){
+        var that = this;
         var metapanel = '<div class="dls_advpanel_title">Advanced Search</div>' +
             '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
             '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
@@ -333,6 +334,8 @@
         }else{
             this.adVancePanel.html(fullpanel).removeClass('dls_meta dls_tag').addClass('dls_full');
         }
+
+
     }
 
     var _anaTagsFiled = function(){
@@ -471,20 +474,28 @@
             words="";
         }
 
-        meta +='<li val=\''+lastwords+'\'><div><span class="dls_meta_icon"></span>'+((that.typeView.attr('id')=="dls_type_meta")?'':'Meta:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
-        full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'':'Full Text:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
-        tags +='<li val=\''+lastwords+'\'><div><span class="dls_tag_icon"></span>'+((that.typeView.attr('id')=="dls_type_tag")?'':'Tag:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
+        if(this.option.type==="Library"){
+            meta +='<li val=\''+lastwords+'\'><div><span class="dls_meta_icon"></span>'+((that.typeView.attr('id')=="dls_type_meta")?'':'Meta:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
+            full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'':'Full Text:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
+            tags +='<li val=\''+lastwords+'\'><div><span class="dls_tag_icon"></span>'+((that.typeView.attr('id')=="dls_type_tag")?'':'Tag:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
+            if(that.typeView.attr('id')=="dls_type_tag")
+                tags="";
+        }else{
+            tags="";
+        }
         $.each(result,function(index,data){
 //            var item = $("<li><div></div></li>").appendTo(container).attr("val",data).find("div");
 //            item.append("<span>"+data+"</span>");
-//
-            if(that.typeView.attr('id')=="dls_type_tag")
+            if(that.option.type==="Library"){
+                if(that.typeView.attr('id')=="dls_type_tag")
+                    tags += '<li val=\''+data+'\'><div><span class="dls_tag_icon"></span><span>'+data+'</span></div></li>';
+                if(that.typeView.attr('id')=="dls_type_meta")
+                    meta += '<li val="'+data+'"><div><span class="dls_meta_icon"></span><span>'+words+" "+data+'</span></div></li>';
+                if(that.typeView.attr('id')=="dls_type_full")
+                    full += '<li val="'+data+'"><div><span class="dls_full_icon"></span><span>'+words+" "+data+'</span></div></li> ';
+            }else{
                 tags += '<li val=\''+data+'\'><div><span class="dls_tag_icon"></span><span>'+data+'</span></div></li>';
-            if(that.typeView.attr('id')=="dls_type_meta")
-                meta += '<li val="'+data+'"><div><span class="dls_meta_icon"></span><span>'+words+" "+data+'</span></div></li>';
-            if(that.typeView.attr('id')=="dls_type_full")
-                full += '<li val="'+data+'"><div><span class="dls_full_icon"></span><span>'+words+" "+data+'</span></div></li> ';
-
+            }
         });
         if(this.option.type==="Library"){
 
