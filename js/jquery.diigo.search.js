@@ -679,7 +679,6 @@
         }else if(this.option.type=="panel"){
 //            _fillInput.apply(this);
             if(this.option.father){
-                console.log(this.option.father);
                 this.option.father.fillinput.apply(this.option.father);
             }
         }
