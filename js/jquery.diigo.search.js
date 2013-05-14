@@ -64,6 +64,9 @@
                     case 39:  //right
                     case 40:  //down
                         break;
+                    case 9:   //tab
+                        event.preventDefault();
+                        break;
                     case 27: //esc
                         _emptySuggestionView.apply(that);
                         break;
@@ -99,8 +102,13 @@
                             that.option.complete(json);
                         }
                         break;
-                    case 9:
-                        _emptySuggestionView.apply(that);
+                    case 9:  //tab
+                        if(that.option.type=="Library"){
+                            event.preventDefault();
+                            _move.apply(that,['down']);
+                        }else{
+                            _emptySuggestionView.apply(that);
+                        }
                         break;
                 }
             })
@@ -303,7 +311,7 @@
 
             var field = (alltext.length>0 ? alltext+" ":"")
                 + (tagtext.length>0 ? "tag:("+tagtext+") ":"")
-                + (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "full:("+fulltext+") " : ""):"")
+                + (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "text:("+fulltext+") " : ""):"")
                 + (urltext.length>0 ? "url:("+urltext+") ":"")
                 + (titletext.length>0 ? "title:("+titletext+") ":"")
                 + (destext.length>0 ? "desc:("+destext+") ":"")
@@ -419,7 +427,7 @@
         if((this.adVancePanel.is('.dls_meta') || this.adVancePanel.is('.dls_full')) && this.adVancePanel.is(":visible")){
             var inputFiled = $.trim(that.inputView.val());
             inputFiled = inputFiled.replace(/\s+/g," ");
-            var FLAGS = ["tag","full","url","title","desc","h"];
+            var FLAGS = ["tag","text","url","title","desc","h"];
             var r = {};
 
             //all filed
@@ -446,7 +454,7 @@
             this.adVancePanel.find('input[name=description]').val($.trim(r['desc']));
             this.adVancePanel.find('input[name=highlights]').val($.trim(r['h']));
             if(that.adVancePanel.is('.dls_full'))
-                this.adVancePanel.find('input[name=fulltext]').val($.trim(r['full']));
+                this.adVancePanel.find('input[name=fulltext]').val($.trim(r['text']));
 
         }
     }
@@ -464,9 +472,18 @@
                 $(this).removeClass('selected');
             })
             .on('click','li',function(e){
+                var complete;
+                if(that.option.type=="Library"){
+                    var currenttype = that.typeView.attr('id').replace("dls_type_","");
+                    var thistype = $(this).find('div span:eq(0)').attr('class').replace(/[dls_|_icon]/g,"");
+                    if (currenttype!=thistype)
+                        complete = true;
+                }
                 _select.apply(that);
                 _emptySuggestionView.apply(that);
                 that.inputView.focus();
+                if(complete)
+                    that.search();
             })
             .css('font-size',this.inputView.css('font-size'))
             .hide();
@@ -677,7 +694,6 @@
                 _anaMetaFiled.apply(that);
             }
         }else if(this.option.type=="panel"){
-//            _fillInput.apply(this);
             if(this.option.father){
                 this.option.father.fillinput.apply(this.option.father);
             }
