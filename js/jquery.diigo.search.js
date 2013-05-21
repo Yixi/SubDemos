@@ -94,13 +94,7 @@
                     case 13: //enter
                         //TODO:begin to search
 
-                        var json = {
-                            "type": that.typeView && that.typeView.attr('id').replace('dls_type_',""),
-                            "value":that.inputView.val()
-                        };
-                        if($.isFunction(that.option.complete)){
-                            that.option.complete(json);
-                        }
+                        that.search();
                         break;
                     case 9:  //tab
                         if(that.option.type=="Library"){
@@ -174,6 +168,9 @@
                         _anaMetaFiled.apply(that);
                         break;
                 }
+                if($.trim(that.inputView.val()).length>0){
+                    that.search();
+                }
             })
             .css('font-size',this.typeView.css('font-size'))
             .hide();
@@ -216,23 +213,11 @@
             })
             .keydown(this._keydown = function(event){
                 if(event.keyCode==13){// enter
-                    var json = {
-                        "type": that.typeView && that.typeView.attr('id').replace('dls_type_',""),
-                        "value":that.inputView.val()
-                    };
-                    if($.isFunction(that.option.complete)){
-                        that.option.complete(json);
-                    }
+                    that.search();
                 }
             })
             .on("click",".dls_advpanel_search",function(e){
-                var json = {
-                    "type": that.typeView && that.typeView.attr('id').replace('dls_type_',""),
-                    "value":that.inputView.val()
-                };
-                if($.isFunction(that.option.complete)){
-                    that.option.complete(json);
-                }
+               that.search();
             });
 
 
@@ -547,10 +532,10 @@
             if(that.option.type==="Library"){
                 if(that.typeView.attr('id')=="dls_type_tag")
                     tags += '<li val=\''+data+'\'><div><span class="dls_tag_icon"></span><span>'+data+'</span></div></li>';
-                if(that.typeView.attr('id')=="dls_type_meta")
-                    meta += '<li val="'+data+'"><div><span class="dls_meta_icon"></span><span>'+words+" "+data+'</span></div></li>';
-                if(that.typeView.attr('id')=="dls_type_full")
-                    full += '<li val="'+data+'"><div><span class="dls_full_icon"></span><span>'+words+" "+data+'</span></div></li> ';
+//                if(that.typeView.attr('id')=="dls_type_meta")
+//                    meta += '<li val="'+data+'"><div><span class="dls_meta_icon"></span><span>'+words+" "+data+'</span></div></li>';
+//                if(that.typeView.attr('id')=="dls_type_full")
+//                    full += '<li val="'+data+'"><div><span class="dls_full_icon"></span><span>'+words+" "+data+'</span></div></li> ';
             }else{
                 tags += '<li val=\''+data+'\'><div><span class="dls_tag_icon"></span><span>'+data+'</span></div></li>';
             }
@@ -761,9 +746,17 @@
 
     var _filter = function(array,term){
         var matcher = new RegExp(_escapeRegex(term),"i");
-        return $.grep(array,function(value){
+        var match =  $.grep(array,function(value){
             return matcher.test(value);
         });
+        var len = term.length;
+        var r = match.sort(function(l,r){
+            if(l && l.slice(0,len) == term)
+                return -1;
+            else
+                return 1;
+        });
+        return r;
     }
     //Public method
 
