@@ -518,9 +518,9 @@
         }
 
         if(this.option.type==="Library"){
-            meta +='<li val=\''+lastwords+'\'><div><span class="dls_meta_icon"></span>'+((that.typeView.attr('id')=="dls_type_meta")?'':'Meta:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
-            full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'':'Full Text:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
-            tags +='<li val=\''+lastwords+'\'><div><span class="dls_tag_icon"></span>'+((that.typeView.attr('id')=="dls_type_tag")?'':'Tag:')+'<span>'+words+" "+showforlast+'</span></div></li> ';
+            meta +='<li val=\''+lastwords+'\'><div><span class="dls_meta_icon"></span>'+((that.typeView.attr('id')=="dls_type_meta")?'<span>'+words+" "+showforlast+'</span>':'Search in Title, URL, Annotations & Tags<span></span>')+'</div></li> ';
+            full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'<span>'+words+" "+showforlast+'</span>':'Search in Full-Text (Upgrade to enable)<span></span>')+'</div></li> ';
+            tags +='<li val=\''+lastwords+'\'><div><span class="dls_tag_icon"></span>'+((that.typeView.attr('id')=="dls_type_tag")?'':'Search in Tags')+'<span></span></div></li> ';
             if(that.typeView.attr('id')=="dls_type_tag")
                 tags="";
         }else{
@@ -749,13 +749,21 @@
         var match =  $.grep(array,function(value){
             return matcher.test(value);
         });
-        var len = term.length;
-        var r = match.sort(function(l,r){
-            if(l && l.slice(0,len) == term)
-                return -1;
-            else
-                return 1;
-        });
+        var tlen = term.length;
+        var len = match.length;
+        var r1=[],r2=[],r3=[];
+        for(var i=0;i<len;i++){
+            if(match[i].slice(0,tlen) == term ){
+                if(match[i]==term)
+                    r1.push(match[i]);
+                else
+                    r2.push(match[i]);
+            }else{
+                r3.push(match[i]);
+            }
+        }
+        
+        var r = $.merge($.merge(r1,r2),r3);
         return r;
     }
     //Public method
