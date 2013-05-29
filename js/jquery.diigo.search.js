@@ -31,6 +31,7 @@
             "itemHeight":null,
             "type":"Library",   //Library(advance search panel)  | Global  | null(only auto complete)
             "dtype":"tag",      // Default search type    "tag"/"full"/"meta"
+            "ispremium":false,
             //data
             "data":[],
             "maxItems":10,
@@ -519,7 +520,7 @@
 
         if(this.option.type==="Library"){
             meta +='<li val=\''+lastwords+'\'><div><span class="dls_meta_icon"></span>'+((that.typeView.attr('id')=="dls_type_meta")?'<span>'+words+" "+showforlast+'</span>':'Search in Title, URL, Annotations & Tags<span></span>')+'</div></li> ';
-            full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'<span>'+words+" "+showforlast+'</span>':'Search in Full-Text (Upgrade to enable)<span></span>')+'</div></li> ';
+            full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'<span>'+words+" "+showforlast+'</span>':'Search in Full-Text'+((that.option.ispremium==true||that.option.ispremium=='true')?'':'(Upgrade to enable)')+'<span></span>')+'</div></li> ';
             tags +='<li val=\''+lastwords+'\'><div><span class="dls_tag_icon"></span>'+((that.typeView.attr('id')=="dls_type_tag")?'':'Search in Tags')+'<span></span></div></li> ';
             if(that.typeView.attr('id')=="dls_type_tag")
                 tags="";
@@ -762,7 +763,7 @@
                 r3.push(match[i]);
             }
         }
-        
+
         var r = $.merge($.merge(r1,r2),r3);
         return r;
     }
