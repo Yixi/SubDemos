@@ -382,7 +382,8 @@
     var _anaTagsFiled = function(){
         var that = this;
         if(this.adVancePanel.is('.dls_tag') && this.adVancePanel.is(':visible')){
-//            var inputField = this.inputView.val();
+            var inputField = this.inputView.val();
+            this.adVancePanel.find('input[name=tagAND]').val(inputField);
 //            var tags = _parseTags.apply(that,[inputField]);
 //            var flag = 0; //0 is AND ; 1 is OR; -1 is NOT;
 //            var _and = [],
