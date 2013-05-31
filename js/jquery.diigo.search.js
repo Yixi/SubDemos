@@ -226,17 +226,21 @@
 
         this.advanceIcon
             .click(function(e){
-//                if(that.adVancePanel.is(':visible')){
-//                    that.adVancePanel.hide();
-//                }else{
-////                    that.adVancePanel.show(10,function(){
-////                        $(document).one('click',function(){
-////                           that.adVancePanel.hide();
-////                        });
-////                    });
-//                    that.adVancePanel.show();
-//                }
-                that.adVancePanel.toggle();
+                var z=this;
+                if(that.adVancePanel.is(':visible')){
+                    that.adVancePanel.hide();
+                    $(z).toggleClass('dls_adv_show');
+                }else{
+                    that.adVancePanel.show(10,function(){
+                        $(document).on('click', that.hideevent = function(e){
+                            if($(e.target).parents(".dls_advpanel").length<1 && $(e.target).parents(".dls_list").length<1){
+                                that.adVancePanel.hide();
+                                $(z).toggleClass('dls_adv_show');
+                                $(document).unbind('click',that.hideevent);
+                            }
+                        });
+                    });
+                }
                 $(this).toggleClass('dls_adv_show');
                 _anaTagsFiled.apply(that);
                 _anaMetaFiled.apply(that);
@@ -270,6 +274,8 @@
                 __or.push('OR');
                 __or.push(_or[i]);
             }
+            __or.shift();
+            if(__or.length<2) __or=[];
             for(var i= 0,len=_not.length;i<len;i++){
                 __not.push("NOT");
                 __not.push(_not[i]);
@@ -314,32 +320,32 @@
         if(this.adVancePanel.html().length<2){
             var metapanel = '<div class="dls_meta_inner" style="display: none">'+
                 '<div class="dls_advpanel_title">Advanced Search</div>' +
-                '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
-                '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
-                '<div><p>URL</p><p><input type="text" name="URL"/></p></div>' +
-                '<div><p>Title</p><p><input type="text" name="title"/></p></div>' +
-                '<div><p>Description</p><p><input type="text" name="description"/></p></div>' +
-                '<div><p>Highlights</p><p><input type="text" name="highlights"/></p></div>' +
+                '<div><p>all these words anywhere:</p><p><input type="text" name="all" /></p></div>' +
+                '<div><p>words in Tags:</p><p><input type="text" name="tag"/></p></div>' +
+                '<div><p>words in URL:</p><p><input type="text" name="URL"/></p></div>' +
+                '<div><p>words in Title:</p><p><input type="text" name="title"/></p></div>' +
+                '<div><p>words in Description:</p><p><input type="text" name="description"/></p></div>' +
+                '<div><p>words in Highlights:</p><p><input type="text" name="highlights"/></p></div>' +
                 '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>' +
                 '</div>';
 
             var fullpanel = '<div class="dls_full_inner" style="display: none">'+
                 '<div class="dls_advpanel_title">Advanced Search</div>' +
-                '<div><p>All</p><p><input type="text" name="all" /></p></div>' +
-                '<div><p>Tagged</p><p><input type="text" name="tag"/></p></div>' +
-                '<div><p>Full text</p><p><input type="text" name="fulltext"/></p></div>' +
-                '<div><p>URL</p><p><input type="text" name="URL"/></p></div>' +
-                '<div><p>Title</p><p><input type="text" name="title"/></p></div>' +
-                '<div><p>Description</p><p><input type="text" name="description"/></p></div>' +
-                '<div><p>Highlights</p><p><input type="text" name="highlights"/></p></div>' +
+                '<div><p>all these words anywhere:</p><p><input type="text" name="all" /></p></div>' +
+                '<div><p>words in Tags:</p><p><input type="text" name="tag"/></p></div>' +
+                '<div><p>words in Full-Text</p><p><input type="text" name="fulltext"/></p></div>' +
+                '<div><p>words in URL:</p><p><input type="text" name="URL"/></p></div>' +
+                '<div><p>words in Title:</p><p><input type="text" name="title"/></p></div>' +
+                '<div><p>words in Description:</p><p><input type="text" name="description"/></p></div>' +
+                '<div><p>words in Highlights:</p><p><input type="text" name="highlights"/></p></div>' +
                 '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>' +
                 '</div>';
 
             var tagpanel ='<div class="dls_tag_inner" style="display: none">'+
                 '<div class="dls_advpanel_title">Advanced Search</div>' +
-                '<div><p>AND</p><p><input type="text" name="tagAND"/></p></div>' +
-                '<div><p>OR</p><p><input type="text" name="tagOR" /></p></div>' +
-                '<div><p>NOT</p><p><input type="text" name="tagNOT" /></p></div>' +
+                '<div><p>all these tags:</p><p><input type="text" name="tagAND"/></p></div>' +
+                '<div><p>any of these tags:</p><p><input type="text" name="tagOR" /></p></div>' +
+                '<div><p>none of these tags:</p><p><input type="text" name="tagNOT" /></p></div>' +
                 '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>' +
                 '</div>';
             this.adVancePanel.html(metapanel+fullpanel+tagpanel);
@@ -376,35 +382,43 @@
     var _anaTagsFiled = function(){
         var that = this;
         if(this.adVancePanel.is('.dls_tag') && this.adVancePanel.is(':visible')){
-            var inputField = this.inputView.val();
-            var tags = _parseTags.apply(that,[inputField]);
-            var flag = 0; //0 is AND ; 1 is OR; -1 is NOT;
-            var _and = [],
-                _or = [],
-                _not = [];
-            for(var i= 0,len=tags.length;i<len;i++){
-                switch(tags[i]){
-                    case 'OR':
-                        flag=1;
-                        break;
-                    case 'NOT':
-                        flag=-1;
-                        break;
-                    default :
-                        if(flag==1){
-                            _or.push(tags[i]);
-                        }else if(flag==-1){
-                            _not.push(tags[i]);
-                        }else{
-                            _and.push(tags[i]);
-                        }
-                        flag=0;
-                        break;
-                }
-            }
-            this.adVancePanel.find('input[name=tagAND]').val(_unparseTags.apply(that,[_and]));
-            this.adVancePanel.find('input[name=tagOR]').val(_unparseTags.apply(that,[_or]));
-            this.adVancePanel.find('input[name=tagNOT]').val(_unparseTags.apply(that,[_not]));
+//            var inputField = this.inputView.val();
+//            var tags = _parseTags.apply(that,[inputField]);
+//            var flag = 0; //0 is AND ; 1 is OR; -1 is NOT;
+//            var _and = [],
+//                _or = [],
+//                _not = [];
+//            for(var i= 0,len=tags.length;i<len;i++){
+//                switch(tags[i]){
+//                    case 'OR':
+//                        flag=1;
+//                        break;
+//                    case 'NOT':
+//                        flag=-1;
+//                        break;
+//                    default :
+//                        if(flag==1){
+//                            if(tags[i-2]){
+//                                if(tags[i-1]!="OR" && tags[i-1]!="NOT")
+//                                    _or.push(tags[i-2]);
+//                                if(tags[i-2]==_and[_and.length-1]){
+//                                    _and.pop();
+//                                }
+//                            }
+//                            _or.push(tags[i]);
+//
+//                        }else if(flag==-1){
+//                            _not.push(tags[i]);
+//                        }else{
+//                            _and.push(tags[i]);
+//                        }
+//                        flag=0;
+//                        break;
+//                }
+//            }
+//            this.adVancePanel.find('input[name=tagAND]').val(_unparseTags.apply(that,[_and]));
+//            this.adVancePanel.find('input[name=tagOR]').val(_unparseTags.apply(that,[_or]));
+//            this.adVancePanel.find('input[name=tagNOT]').val(_unparseTags.apply(that,[_not]));
         }
     }
 
@@ -754,8 +768,8 @@
         var len = match.length;
         var r1=[],r2=[],r3=[];
         for(var i=0;i<len;i++){
-            if(match[i].slice(0,tlen) == term ){
-                if(match[i]==term)
+            if(match[i].slice(0,tlen).toLowerCase() == term.toLowerCase() ){
+                if(match[i].toLowerCase()==term.toLowerCase())
                     r1.push(match[i]);
                 else
                     r2.push(match[i]);
