@@ -476,15 +476,18 @@
                 var complete;
                 if(that.option.type=="Library"){
                     var currenttype = that.typeView.attr('id').replace("dls_type_","");
-                    var thistype = $(this).find('div span:eq(0)').attr('class').replace(/[dls_|_icon]/g,"");
-                    if (currenttype!=thistype)
+                    var thistype = $(this).find('div span:eq(0)').attr('class').replace(/(dls_|_icon)/g,"");
+                    if (currenttype!=thistype || thistype=="edittag")
                         complete = true;
                 }
                 _select.apply(that);
                 _emptySuggestionView.apply(that);
                 that.inputView.focus();
                 if(complete)
-                    that.search();
+                    if(thistype=="edittag")
+                        that.search("edittag");
+                    else
+                        that.search();
             })
             .css('font-size',this.inputView.css('font-size'))
             .hide();
@@ -566,7 +569,9 @@
                 if(tags.length<1){
                     html = meta+full;
                 }else{
-                    html = tags+'<hr />'+meta+full;
+                    html = tags+'' +
+                        '<li val=\''+lastwords+'\'><div><span class="dls_edittag_icon"></span><span>edit these tags</span></div></li>' +
+                        '<hr />'+meta+full;
                 }
             }
             $(html).appendTo(container);
@@ -693,6 +698,8 @@
                 that.typeView.attr('id','dls_type_full');
                 _fillAdvancePanel.apply(that,['full']);
                 _anaMetaFiled.apply(that);
+            }else if(selected.find("span.dls_edittag_icon").length>0){
+                that.typeView.attr('id','dls_type_edittag');
             }
         }else if(this.option.type=="panel"){
             if(this.option.father){
@@ -804,9 +811,19 @@
         }
     }
     Controller.prototype.search = function(){
+        console.log(arguments);
         var that =this;
+        var type = that.typeView && that.typeView.attr('id').replace('dls_type_',"");
+        if(type == "edittag"){
+            if(that.SuggestionView.find('li.selected span.dls_edittag_icon').length>0)
+                type="edittag";
+            else
+                type="tag";
+        }
+        if(arguments[0]=="edittag")
+            type="edittag";
         var json = {
-            "type": that.typeView && that.typeView.attr('id').replace('dls_type_',""),
+            "type": type,
             "value":that.inputView.val()
         };
         if($.isFunction(that.option.complete)){
