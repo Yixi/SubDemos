@@ -206,9 +206,8 @@
         mutil:true,
         complete:function(key){
           document.getElementById('output').innerHTML="type:"+key.type+"<br/>"+key.value;
-        },
+        }
 
-        data:a
 //        data:function(request,response){
 //            var b=[];
 //            for(var i=0;i<=5;i++){
@@ -218,6 +217,7 @@
 //        }
     });
 
+    c.DiigoLSearch({data:a})
     //for test
 
 //    $("#DiigoLibrarySearch").val("allfield tag:(tag filed) full:(full field) url:(url field) title:(title filed) des:(des field) h:(hi field)");

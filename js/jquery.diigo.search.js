@@ -42,7 +42,7 @@
             //complete
             "complete":null,
 
-            //WARN the "father" for the advance panel to get the root input view;
+            //WARN the "father" for the advance panel to get the root input view; this is a private option!!!
             "father":null
         },option);
 
@@ -570,7 +570,7 @@
                     html = meta+full;
                 }else{
                     html = tags+'' +
-                        '<li val=\''+lastwords+'\'><div><span class="dls_edittag_icon"></span><span>edit these tags</span></div></li>' +
+                        '<li val=\''+lastwords+'\' class="edittag"><div><span class="dls_edittag_icon"></span><span>edit these tags</span></div></li>' +
                         '<hr />'+meta+full;
                 }
             }
@@ -796,6 +796,14 @@
     Controller.prototype.setOption = function(option){
         if($.isPlainObject(option)){
             this.option = $.extend(false,this.option,option);
+            if(!this.option.father){
+                _reLocateViews.apply(this);
+                if(this.option.type=="Library"){
+                    this.adVancePanel.find('input[name=tagAND],input[name=tagOR],input[name=tagNOT]').DiigoLSearch({
+                        data:this.option.data,
+                    })
+                }
+            }
         }else if(typeof(option)==='string'){
             switch(option){
                 case 'destroy':
@@ -810,8 +818,9 @@
             }
         }
     }
+
+
     Controller.prototype.search = function(){
-        console.log(arguments);
         var that =this;
         var type = that.typeView && that.typeView.attr('id').replace('dls_type_',"");
         if(type == "edittag"){
