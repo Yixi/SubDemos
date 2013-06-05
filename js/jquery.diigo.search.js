@@ -251,7 +251,7 @@
 
         var top = this.SearchPanel.offset().top + this.SearchPanel.outerHeight();
         var left = this.SearchPanel.offset().left;
-        this.adVancePanel.css("top",top-1+"px").css("left",left-1+"px").css('position',"absolute").css('width',_calcWidth.apply(this));
+        this.adVancePanel.css("top",top-1+"px").css("left",left+"px").css('position',"absolute").css('width',_calcWidth.apply(this));
         _fillAdvancePanel.apply(this,['tag']);
     }
 
@@ -617,7 +617,7 @@
             var t_left = this.typeView.offset().left;
             this.TypeSelectView.css("top",t_top+"px").css("left",t_left-1+"px").css('position',"absolute");
 
-            this.adVancePanel.css("top",s_top-1+"px").css("left",s_left-1+"px").css('position',"absolute").css('width',_calcWidth.apply(this));
+            this.adVancePanel.css("top",s_top-1+"px").css("left",s_left+"px").css('position',"absolute").css('width',_calcWidth.apply(this));
 
         }else{
             var s_top = this.inputView.offset().top + this.inputView.outerHeight();
