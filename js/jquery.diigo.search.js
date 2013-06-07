@@ -94,7 +94,7 @@
                         break
                     case 13: //enter
                         //TODO:begin to search
-
+                        _emptySuggestionView.apply(that);
                         that.search();
                         break;
                     case 9:  //tab
@@ -142,7 +142,6 @@
     var _setupTypeSelectView = function(){
         var that = this;
         this.TypeSelectView = $("<div class='dls_list dls_type_list'><ul><li val='tag'><span class='dls_tag_icon'>&nbsp;</span>Tag Search</li><li val='meta'><span class='dls_meta_icon'>&nbsp;</span>Meta Search</li><li val='full'><span class='dls_full_icon'>&nbsp;</span>Full text Search</li></ul></div> ")
-            .appendTo(document.body)
             .on('mouseenter','li',function(){
                 that.TypeSelectView.find('li.selected').removeClass("selected");
                 $(this).addClass("selected");
@@ -179,11 +178,11 @@
         this.typeView
             .click(function(e){
                 if(that.TypeSelectView.is(':visible')){
-                    that.TypeSelectView.hide();
+                    that.TypeSelectView.hide().detach();
                 }else{
-                    that.TypeSelectView.show(10,function(){
+                    that.TypeSelectView.appendTo(document.body).show(10,function(){
                         $(document).one('click',function(){
-                            that.TypeSelectView.hide();
+                            that.TypeSelectView.hide().detach();
                         })
                     });
 
@@ -206,7 +205,7 @@
 
     var _setupAdvancePanel = function(){
         var that =this;
-        this.adVancePanel = $('<div class="dls_advpanel dls_list"></div>').appendTo(document.body).hide();
+        this.adVancePanel = $('<div class="dls_advpanel dls_list"></div>').hide();
 
         this.adVancePanel
             .on('input','input',function(e){
@@ -228,13 +227,13 @@
             .click(function(e){
                 var z=this;
                 if(that.adVancePanel.is(':visible')){
-                    that.adVancePanel.hide();
+                    that.adVancePanel.hide().detach();
                     $(z).toggleClass('dls_adv_show');
                 }else{
-                    that.adVancePanel.show(10,function(){
+                    that.adVancePanel.appendTo(document.body).show(10,function(){
                         $(document).on('click', that.hideevent = function(e){
                             if($(e.target).parents(".dls_advpanel").length<1 && $(e.target).parents(".dls_list").length<1){
-                                that.adVancePanel.hide();
+                                that.adVancePanel.hide().detach();
                                 $(z).toggleClass('dls_adv_show');
                                 $(document).unbind('click',that.hideevent);
                             }
@@ -464,7 +463,6 @@
     var _setupSuggestionView = function(){
         var that = this;
         this.SuggestionView = $("<div class='dls_list dls_suggestion_list'><ul></ul></div> ")
-            .appendTo(document.body)
             .on('mouseenter','li',function(){
                 that.SuggestionView.find('li.selected').removeClass("selected");
                 $(this).addClass('selected');
@@ -490,9 +488,6 @@
                         that.search();
             })
             .css('font-size',this.inputView.css('font-size'))
-            .hide();
-
-
 
     }
 
@@ -604,7 +599,7 @@
             var top = this.inputView.offset().top + this.inputView.outerHeight();
             var left =this.inputView.offset().left;
         }
-        this.SuggestionView.css("top",top-1+"px").css("left",left+"px").css('position',"absolute");
+        this.SuggestionView.css("top",top-1+"px").css("left",left+"px").css('position',"absolute").css('zIndex',"10010");
 
     }
 
@@ -635,15 +630,17 @@
             _locateSuggestionView.apply(that)
 
             this.SuggestionView.css("width",_calcWidth.apply(this)+'px');
-            this.SuggestionView.show();
+//            this.SuggestionView.show();
+            this.SuggestionView.appendTo(document.body).show();
         }
 
     }
 
     var _emptySuggestionView = function(){
         this.SuggestionView.find('ul').empty();
-        this.SuggestionView.hide();
+        this.SuggestionView.hide().detach();
     }
+
 
     var _suggestion = function(){
         var that = this,
@@ -831,6 +828,7 @@
         }
         if(arguments[0]=="edittag")
             type="edittag";
+        if(type==undefined) type="tag";
         var json = {
             "type": type,
             "value":that.inputView.val()
