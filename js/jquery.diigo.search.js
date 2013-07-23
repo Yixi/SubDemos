@@ -232,7 +232,7 @@
                 }else{
                     that.adVancePanel.appendTo(document.body).show(10,function(){
                         $(document).on('click', that.hideevent = function(e){
-                            if($(e.target).parents(".dls_advpanel").length<1 && $(e.target).parents(".dls_list").length<1){
+                            if($(e.target).parents(".dls_advpanel").length<1 && $(e.target).parents("li.selected").length<1){
                                 that.adVancePanel.hide().detach();
                                 $(z).toggleClass('dls_adv_show');
                                 $(document).unbind('click',that.hideevent);
