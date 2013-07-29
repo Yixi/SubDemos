@@ -291,23 +291,24 @@
             _and.length=0;
 
         }else{
-            var alltext = $.trim(that.adVancePanel.find('input[name=all]').val()),
-                tagtext = $.trim(that.adVancePanel.find('input[name=tag]').val()),
-                urltext = $.trim(that.adVancePanel.find('input[name=URL]').val()),
-                titletext = $.trim(that.adVancePanel.find('input[name=title]').val()),
-                destext = $.trim(that.adVancePanel.find('input[name=description]').val()),
-                highlighttext = $.trim(that.adVancePanel.find('input[name=highlights]').val());
-            if(that.adVancePanel.is('.dls_full'))
-                var fulltext = $.trim(that.adVancePanel.find('input[name=fulltext]').val());
+            if(that.adVancePanel.is('.dls_meta')){
+                var alltext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=all]').val()),
+                    tagtext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=tag]').val()),
+                    urltext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=URL]').val());
+            }else if(that.adVancePanel.is('.dls_full')){
+                var alltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=all]').val()),
+                    tagtext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=tag]').val()),
+                    urltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=URL]').val()),
+                    fulltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=fulltext]').val());
+            }
 
+//            var tag = "";
+            tagtext = tagtext.length > 0 ? "#"+ _splitQuery(tagtext).join(" #") : "";
+            urltext = urltext.length > 0 ? "@"+ _splitQuery(urltext).join(" @") : "";
             var field = (alltext.length>0 ? alltext+" ":"")
-                + (tagtext.length>0 ? "tag:("+tagtext+") ":"")
+                + (tagtext.length>0 ? tagtext+" ":"")
                 + (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "text:("+fulltext+") " : ""):"")
-                + (urltext.length>0 ? "url:("+urltext+") ":"")
-                + (titletext.length>0 ? "title:("+titletext+") ":"")
-                + (destext.length>0 ? "desc:("+destext+") ":"")
-                + (highlighttext.length>0 ? "h:("+highlighttext+") ":"");
-
+                + (urltext.length>0 ? urltext+" ":"");
             that.inputView.val(field);
 
         }
@@ -322,9 +323,6 @@
                 '<div><p>all these words anywhere:</p><p><input type="text" name="all" /></p></div>' +
                 '<div><p>words in Tags:</p><p><input type="text" name="tag"/></p></div>' +
                 '<div><p>words in URL:</p><p><input type="text" name="URL"/></p></div>' +
-                '<div><p>words in Title:</p><p><input type="text" name="title"/></p></div>' +
-                '<div><p>words in Description:</p><p><input type="text" name="description"/></p></div>' +
-                '<div><p>words in Highlights:</p><p><input type="text" name="highlights"/></p></div>' +
                 '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>' +
                 '</div>';
 
@@ -334,9 +332,6 @@
                 '<div><p>words in Tags:</p><p><input type="text" name="tag"/></p></div>' +
                 '<div><p>words in Full-Text</p><p><input type="text" name="fulltext"/></p></div>' +
                 '<div><p>words in URL:</p><p><input type="text" name="URL"/></p></div>' +
-                '<div><p>words in Title:</p><p><input type="text" name="title"/></p></div>' +
-                '<div><p>words in Description:</p><p><input type="text" name="description"/></p></div>' +
-                '<div><p>words in Highlights:</p><p><input type="text" name="highlights"/></p></div>' +
                 '<div class="dls_advpanel_search"><a href="javascript:void(0)" class="dls_search"></a></div>' +
                 '</div>';
 
@@ -425,36 +420,11 @@
     var _anaMetaFiled =function(){
         var that = this;
         if((this.adVancePanel.is('.dls_meta') || this.adVancePanel.is('.dls_full')) && this.adVancePanel.is(":visible")){
-            var inputFiled = $.trim(that.inputView.val());
-            inputFiled = inputFiled.replace(/\s+/g," ");
-            var FLAGS = ["tag","text","url","title","desc","h"];
-            var r = {};
-
-            //all filed
-            var re_all = new RegExp("(?:("+FLAGS.join("|")+")\\s*:\\s*\\(\\s*)(.+?)(?:\\s*\\))|(?:("+FLAGS.join("|")+")\\s*:\\s*)(.+?)(?:\\s|$)","gi");
-            r.all = $.trim(inputFiled.replace(re_all,""));
-
-
-            for(var i= 0,len=FLAGS.length;i<len;i++){
-                var re = new RegExp("(?:"+FLAGS[i]+"\\s*:\\s*\\(\\s*)(.+?)(?:\\s*\\))|(?:"+FLAGS[i]+"\\s*:\\s*)(.+?)(?:\\s|$)","gi");
-                var result = re.exec(inputFiled);
-                r[FLAGS[i]]="";
-
-                while(result!=null){
-                    r[FLAGS[i]] += result[1]? result[1] : "";
-                    r[FLAGS[i]] += result[2]? result[2] : "";
-                    r[FLAGS[i]] +=" ";
-                    result = re.exec(inputFiled);
-                }
-            }
-            this.adVancePanel.find('input[name=all]').val($.trim(r['all']));
-            this.adVancePanel.find('input[name=tag]').val($.trim(r['tag']));
-            this.adVancePanel.find('input[name=URL]').val($.trim(r['url']));
-            this.adVancePanel.find('input[name=title]').val($.trim(r['title']));
-            this.adVancePanel.find('input[name=description]').val($.trim(r['desc']));
-            this.adVancePanel.find('input[name=highlights]').val($.trim(r['h']));
-            if(that.adVancePanel.is('.dls_full'))
-                this.adVancePanel.find('input[name=fulltext]').val($.trim(r['text']));
+            var inputFiled = $.trim(that.inputView.val()),
+                r = _analyMeta(inputFiled);
+            this.adVancePanel.find('input[name=all]').val(r.meta);
+            this.adVancePanel.find('input[name=tag]').val(r.tag);
+            this.adVancePanel.find('input[name=URL]').val(r.url);
 
         }
     }
@@ -703,7 +673,128 @@
                 this.option.father.fillinput.apply(this.option.father);
             }
         }
+    };
+
+
+    /*new function to parseTags and query  */
+
+    var _analyMeta = function(str){
+        if(!str) return [];
+        if(!/#|@/.test(str)){
+            return {
+                meta:str,
+                tag:"",
+                url:""
+            };
+        }
+        var terms = _splitQuery(str),
+            pos = 0,
+            ret = {
+                meta:"",
+                tag:"",
+                url:""
+            },
+            ret_tags = [],
+            ret_links = [],
+            ret_meta =[];
+        for(var len=terms.length;pos < len;){
+            var term = terms[pos];
+            var syntax = term.charAt(0);
+            if(syntax == '"'){
+                ret_meta.push(_filter_char(term));
+            }else if(syntax == '@'){
+                ret_links.push(_filter_url(term));
+            }else if(syntax == '#'){
+                ret_tags.push(_filter_tag(term));
+            }else{
+                ret_meta.push(_filter_char(term));
+            }
+            pos++;
+        }
+
+        ret.meta = ret_meta.join(" ");
+        ret.tag = ret_tags.join(" ");
+        ret.url = ret_links.join(" ");
+        return ret;
     }
+
+    /*filter char */
+    var fc_reg= /[\"\/\?\\!&%~{}]/g;
+    var _filter_tag = function(str){
+        return str.substring(1,str.length);
+    }
+    var _filter_url = function(str){
+        return str.substring(1,str.length);
+    }
+    var _filter_char = function(str){
+        if(!str) return "";
+        str = str.replace(fc_reg," ");
+        return str;
+    }
+
+    /**
+     * split the query by double quotation marks
+     * @param str
+     * @returns {Array}
+     * @private
+     */
+    var _splitQuery = function(str){
+        if(!str) return [];
+        str = str
+            .replace(/\s+/g," ")
+            .replace(/^\s+|\s+$/g, '');  //merge the space and trim string.
+        var terms = str.split(" ");
+        terms = _compensateQuote(terms);
+        return terms;
+    };
+    /**
+     * compensate the quote and return the right split of the query.
+     * @param terms{Array}
+     * @returns {Array}
+     * @private
+     */
+    var _compensateQuote = function(terms){
+        var ret = [],
+            pos = 0;
+        while( pos < terms.length){
+            var term = terms[pos],
+                syntax = term.charAt(0),
+                term_q = term,
+                next_q = false;
+            if (syntax == '"'){
+                if( !(term.charAt(term.length-1) == '"' && term.length > 1) ){
+                    next_q = true;
+                }
+            }else if(/#|@/.test(syntax)){
+                if(term.length > 2 && term.charAt(1) == '"'){
+                    if( !(term.charAt(term.length -1) == '"' && term.length > 2) ){
+                        next_q = true;
+                    }
+                }
+            }
+            if(next_q){
+                var pos_e = pos + 1;
+                while (pos_e < terms.length){
+                    var t = terms[pos_e];
+                    term_q  = term_q + " " + t;
+                    if(t.charAt(t.length -1) == '"'){
+                        break;
+                    }
+                    pos_e +=1;
+                }
+                if(pos_e >= terms.length && term_q.charAt(term_q.length -1 ) != '"'){
+                    term_q = term;
+                }else{
+                    pos = pos_e;
+                }
+            }
+            pos += 1;
+            ret.push(term_q);
+        }
+        return ret;
+    };
+
+
     var _parseTags = function(strTags){
         var stack = [],tags=[];
         var begin_delimiter = false;
@@ -797,7 +888,7 @@
                 _reLocateViews.apply(this);
                 if(this.option.type=="Library"){
                     this.adVancePanel.find('input[name=tagAND],input[name=tagOR],input[name=tagNOT]').DiigoLSearch({
-                        data:this.option.data,
+                        data:this.option.data
                     })
                 }
             }
