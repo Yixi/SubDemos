@@ -19,7 +19,7 @@
                 }
             });
         }
-    })
+    });
 
     // Construct Method
 
@@ -30,7 +30,7 @@
             "maxHeight":null,
             "itemHeight":null,
             "type":"Library",   //Library(advance search panel)  | Global  | null(only auto complete)
-            "dtype":"tag",      // Default search type    "tag"/"full"/"meta"
+            "dtype":"meta",      // Default search type    "tag"/"full"/"meta"
             "ispremium":false,
             //data
             "data":[],
@@ -41,14 +41,19 @@
 
             //complete
             "complete":null,
+            "typeChange":null,
 
             //WARN the "father" for the advance panel to get the root input view; this is a private option!!!
             "father":null
         },option);
 
+        if(['tag','full','meta'].indexOf(this.option.dtype)<0){
+            this.option.dtype = "meta";
+        }
+
         _setupView.apply(this,[input]);
         _setupSuggestionView.apply(this);
-    }
+    };
 
     var _setupView = function(input){
         var that = this;
@@ -91,7 +96,7 @@
                         }else{
                             _move.apply(that,['down']);
                         }
-                        break
+                        break;
                     case 13: //enter
                         //TODO:begin to search
                         _emptySuggestionView.apply(that);
@@ -120,13 +125,13 @@
         $(window).resize(function(){
            _reLocateViews.apply(that);
         });
-    }
+    };
 
     var _setupLibrarySearchPanel = function(){
         var that = this;
 
         this.inputView.wrap('<span class="diigols_box"></span>').css('float','left').css('border','none');
-        var _h = this.inputView.outerHeight()
+        var _h = this.inputView.outerHeight();
         this.SearchPanel = this.inputView.parent().css('position','relative');
         this.typeView = $('<span class="dls_type"><span>&nbsp;</span></span>').css('height',_h).css('line-height',_h+"px");
         this.advanceIcon= $('<span class="dls_adv"><b>&nbsp;</b></span> ').css('height',_h).css('line-height',_h+"px");
@@ -137,7 +142,7 @@
 
         _setupAdvancePanel.apply(this);
         _setupTypeSelectView.apply(this);
-    }
+    };
 
     var _setupTypeSelectView = function(){
         var that = this;
@@ -153,20 +158,17 @@
                 var type = $(this).attr('val');
                 switch(type){
                     case 'tag':
-                        that.typeView.attr('id','dls_type_tag');
-                        _fillAdvancePanel.apply(that,['tag']);
-                        _anaTagsFiled.apply(that);
+                        _ChangeType.apply(that,["tag"]);
                         break;
                     case 'meta':
-                        that.typeView.attr('id','dls_type_meta');
-                        _fillAdvancePanel.apply(that,['meta']);
-                        _anaMetaFiled.apply(that);
+                        _ChangeType.apply(that,["meta"]);
                         break;
                     case 'full':
-                        that.typeView.attr('id','dls_type_full');
-                        _fillAdvancePanel.apply(that,['full']);
-                        _anaMetaFiled.apply(that);
+                        _ChangeType.apply(that,["full"]);
                         break;
+                }
+                if($.isFunction(that.option.typeChange)){
+                    that.option.typeChange(type);
                 }
                 if($.trim(that.inputView.val()).length>0){
                     that.search();
@@ -183,7 +185,7 @@
                     that.TypeSelectView.appendTo(document.body).show(10,function(){
                         $(document).one('click',function(){
                             that.TypeSelectView.hide().detach();
-                        })
+                        });
                     });
 
                 }
@@ -193,15 +195,37 @@
         this.TypeSelectView.css("top",top+"px").css("left",left-1+"px").css('position',"absolute");
 
         if(this.option.dtype==="full"){
-            that.typeView.attr('id','dls_type_full');
+            _ChangeType.apply(that,["full"]);
+        }else if(this.option.dtype==="meta"){
+            _ChangeType.apply(that,["meta"]);
+        }else if(this.option.dtype==="tag"){
+            _ChangeType.apply(that,["tag"]);
+        }
+    };
+
+    var _ChangeType = function(type){
+        var that = this;
+        var title;
+        if(type === "full"){
+            title = "Search in Full-Text";
+            that.typeView.attr('id','dls_type_full').attr("title",title);
+            that.inputView.attr("placeholder",title);
             _fillAdvancePanel.apply(that,['full']);
             _anaMetaFiled.apply(that);
-        }else if(this.option.dtype==="meta"){
-            that.typeView.attr('id','dls_type_meta');
+        }else if(type === "meta"){
+            title = "Search in Title, URL, Annotations & Tags";
+            that.typeView.attr('id','dls_type_meta').attr("title",title);
+            that.inputView.attr("placeholder",title);
             _fillAdvancePanel.apply(that,['meta']);
             _anaMetaFiled.apply(that);
+        }else if(type === "tag"){
+            title = "Search in Tags";
+            that.typeView.attr('id','dls_type_tag').attr("title",title);
+            that.inputView.attr("placeholder",title);
+            _fillAdvancePanel.apply(that,['tag']);
+            _anaTagsFiled.apply(that);
         }
-    }
+    };
 
     var _setupAdvancePanel = function(){
         var that =this;
@@ -252,7 +276,7 @@
         var left = this.SearchPanel.offset().left;
         this.adVancePanel.css("top",top-1+"px").css("left",left+"px").css('position',"absolute").css('width',_calcWidth.apply(this));
         _fillAdvancePanel.apply(this,['tag']);
-    }
+    };
 
     var _fillInput = function(){
         var that =this;
@@ -269,13 +293,14 @@
             _and = _parseTags.apply(that,[andtext]);
             _or = _parseTags.apply(that,[ortext]);
             _not = _parseTags.apply(that,[nottext]);
-            for(var i= 0,len=_or.length;i<len;i++){
+            var i,len;
+            for(i= 0,len=_or.length;i<len;i++){
                 __or.push('OR');
                 __or.push(_or[i]);
             }
             __or.shift();
             if(__or.length<2) __or=[];
-            for(var i= 0,len=_not.length;i<len;i++){
+            for( i= 0,len=_not.length;i<len;i++){
                 __not.push("NOT");
                 __not.push(_not[i]);
             }
@@ -291,28 +316,26 @@
             _and.length=0;
 
         }else{
+            var alltext,tagtext,urltext,fulltext;
             if(that.adVancePanel.is('.dls_meta')){
-                var alltext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=all]').val()),
-                    tagtext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=tag]').val()),
-                    urltext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=URL]').val());
+                alltext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=all]').val());
+                tagtext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=tag]').val());
+                urltext = $.trim(that.adVancePanel.find('.dls_meta_inner input[name=URL]').val());
             }else if(that.adVancePanel.is('.dls_full')){
-                var alltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=all]').val()),
-                    tagtext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=tag]').val()),
-                    urltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=URL]').val()),
-                    fulltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=fulltext]').val());
+                alltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=all]').val());
+                tagtext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=tag]').val());
+                urltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=URL]').val());
+                fulltext = $.trim(that.adVancePanel.find('.dls_full_inner input[name=fulltext]').val());
             }
 
 //            var tag = "";
             tagtext = tagtext.length > 0 ? "#"+ _splitQuery(tagtext).join(" #") : "";
             urltext = urltext.length > 0 ? "@"+ _splitQuery(urltext).join(" @") : "";
-            var field = (alltext.length>0 ? alltext+" ":"")
-                + (tagtext.length>0 ? tagtext+" ":"")
-                + (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "text:("+fulltext+") " : ""):"")
-                + (urltext.length>0 ? urltext+" ":"");
+            var field = (alltext.length>0 ? alltext+" ":"") + (tagtext.length>0 ? tagtext+" ":"")+ (that.adVancePanel.is('.dls_full')===true?(fulltext.length>0 ? "text:("+fulltext+") " : ""):"") + (urltext.length>0 ? urltext+" ":"");
             that.inputView.val(field);
 
         }
-    }
+    };
 
 
     var _fillAdvancePanel = function(type){
@@ -349,7 +372,7 @@
                 data:that.option.data,
                 mutil:true,
                 father:this
-            })
+            });
 
         }
 
@@ -371,7 +394,7 @@
         }
 
 
-    }
+    };
 
     var _anaTagsFiled = function(){
         var that = this;
@@ -415,7 +438,7 @@
 //            this.adVancePanel.find('input[name=tagOR]').val(_unparseTags.apply(that,[_or]));
 //            this.adVancePanel.find('input[name=tagNOT]').val(_unparseTags.apply(that,[_not]));
         }
-    }
+    };
 
     var _anaMetaFiled =function(){
         var that = this;
@@ -425,9 +448,9 @@
             this.adVancePanel.find('input[name=all]').val(r.meta);
             this.adVancePanel.find('input[name=tag]').val(r.tag);
             this.adVancePanel.find('input[name=URL]').val(r.url);
-
+            this.adVancePanel.find('input[name=fulltext]').val("");
         }
-    }
+    };
 
 
     var _setupSuggestionView = function(){
@@ -441,10 +464,10 @@
                 $(this).removeClass('selected');
             })
             .on('click','li',function(e){
-                var complete;
+                var complete,thistype;
                 if(that.option.type=="Library"){
                     var currenttype = that.typeView.attr('id').replace("dls_type_","");
-                    var thistype = $(this).find('div span:eq(0)').attr('class').replace(/(dls_|_icon)/g,"");
+                    thistype = $(this).find('div span:eq(0)').attr('class').replace(/(dls_|_icon)/g,"");
                     if (currenttype!=thistype || thistype=="edittag")
                         complete = true;
                 }
@@ -457,26 +480,27 @@
                     else
                         that.search();
             })
-            .css('font-size',this.inputView.css('font-size'))
+            .css('font-size',this.inputView.css('font-size'));
 
-    }
+    };
 
     var _move = function(dir){
         var selected = this.SuggestionView.find('li.selected');
+        var nextSelected;
         if(selected.length>0){
-            var nextSelected = dir ==='up'? selected.prev() : selected.next();
+             nextSelected = dir ==='up'? selected.prev() : selected.next();
         }else{
-            var nextSelected = dir ==='up'? this.SuggestionView.find('li').last('li') : this.SuggestionView.find('li').first('li');
+             nextSelected = dir ==='up'? this.SuggestionView.find('li').last('li') : this.SuggestionView.find('li').first('li');
         }
         if(nextSelected.length>0){
             if(nextSelected[0].tagName.toLowerCase()=='hr'){
-                var nextSelected = dir ==='up'? nextSelected.prev() : nextSelected.next();
+                 nextSelected = dir ==='up'? nextSelected.prev() : nextSelected.next();
             }
             this.SuggestionView.find('li').removeClass("selected");
             nextSelected.addClass("selected");
         }
         _select.apply(this);
-    }
+    };
 
     var _createItems = function(result){
         var that = this,
@@ -503,7 +527,7 @@
 
         if(this.option.type==="Library"){
             meta +='<li val=\''+lastwords+'\'><div><span class="dls_meta_icon"></span>'+((that.typeView.attr('id')=="dls_type_meta")?'<span>'+words+" "+showforlast+'</span>':'Search in Title, URL, Annotations & Tags<span></span>')+'</div></li> ';
-            full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'<span>'+words+" "+showforlast+'</span>':'Search in Full-Text'+((that.option.ispremium==true||that.option.ispremium=='true')?'':'(Upgrade to enable)')+'<span></span>')+'</div></li> ';
+            full +='<li val=\''+lastwords+'\'><div><span class="dls_full_icon"></span>'+((that.typeView.attr('id')=="dls_type_full")?'<span>'+words+" "+showforlast+'</span>':'Search in Full-Text'+((that.option.ispremium===true||that.option.ispremium=='true')?'':'(Upgrade to enable)')+'<span></span>')+'</div></li> ';
             tags +='<li val=\''+lastwords+'\'><div><span class="dls_tag_icon"></span>'+((that.typeView.attr('id')=="dls_type_tag")?'':'Search in Tags')+'<span></span></div></li> ';
             if(that.typeView.attr('id')=="dls_type_tag")
                 tags="";
@@ -516,8 +540,8 @@
             if(that.option.type==="Library"){
                 if(that.typeView.attr('id')=="dls_type_tag")
                     tags += '<li val=\''+data+'\'><div><span class="dls_tag_icon"></span><span>'+data+'</span></div></li>';
-//                if(that.typeView.attr('id')=="dls_type_meta")
-//                    meta += '<li val="'+data+'"><div><span class="dls_meta_icon"></span><span>'+words+" "+data+'</span></div></li>';
+                if(that.typeView.attr('id')=="dls_type_meta")
+                    meta += '<li val="'+data+'"><div><span class="dls_meta_icon"></span><span>'+words+" "+data+'</span></div></li>';
 //                if(that.typeView.attr('id')=="dls_type_full")
 //                    full += '<li val="'+data+'"><div><span class="dls_full_icon"></span><span>'+words+" "+data+'</span></div></li> ';
             }else{
@@ -546,7 +570,7 @@
         }
 
 
-    }
+    };
     var _calcWidth = function(){
         if(typeof(this.option.width)==='string' && this.option.width.toLowerCase()==='auto'){
             if(this.option.type === 'Library'){
@@ -558,25 +582,27 @@
             return this.option.width;
         }
 
-    }
+    };
 
     var _locateSuggestionView = function(){
         //定位补全列表
+        var top,left;
         if(this.option.type ==='Library'){
-            var top = this.SearchPanel.offset().top + this.SearchPanel.outerHeight();
-            var left = this.SearchPanel.offset().left;
+             top = this.SearchPanel.offset().top + this.SearchPanel.outerHeight();
+             left = this.SearchPanel.offset().left;
         }else{
-            var top = this.inputView.offset().top + this.inputView.outerHeight();
-            var left =this.inputView.offset().left;
+             top = this.inputView.offset().top + this.inputView.outerHeight();
+             left =this.inputView.offset().left;
         }
         this.SuggestionView.css("top",top-1+"px").css("left",left+"px").css('position',"absolute").css('zIndex',"10010");
 
-    }
+    };
 
     var _reLocateViews = function(){
+        var s_top,s_left;
         if(this.option.type === 'Library'){
-            var s_top = this.SearchPanel.offset().top + this.SearchPanel.outerHeight();
-            var s_left = this.SearchPanel.offset().left;
+             s_top = this.SearchPanel.offset().top + this.SearchPanel.outerHeight();
+             s_left = this.SearchPanel.offset().left;
 
             var t_top = this.typeView.offset().top + this.typeView.outerHeight();
             var t_left = this.typeView.offset().left;
@@ -585,31 +611,31 @@
             this.adVancePanel.css("top",s_top-1+"px").css("left",s_left+"px").css('position',"absolute").css('width',_calcWidth.apply(this));
 
         }else{
-            var s_top = this.inputView.offset().top + this.inputView.outerHeight();
-            var s_left =this.inputView.offset().left;
+             s_top = this.inputView.offset().top + this.inputView.outerHeight();
+             s_left =this.inputView.offset().left;
         }
         this.SuggestionView.css("top",s_top-1+"px").css("left",s_left+"px").css('position',"absolute");
-    }
+    };
 
     var _showSuggestionView = function(result){
         var that =this;
-        if(this.option.type!="Library" && result.length==0){
+        if(this.option.type!="Library" && result.length===0){
             _emptySuggestionView.apply(that);
         }else{
             _createItems.apply(that,[result]);
-            _locateSuggestionView.apply(that)
+            _locateSuggestionView.apply(that);
 
             this.SuggestionView.css("width",_calcWidth.apply(this)+'px');
 //            this.SuggestionView.show();
             this.SuggestionView.appendTo(document.body).show();
         }
 
-    }
+    };
 
     var _emptySuggestionView = function(){
         this.SuggestionView.find('ul').empty();
         this.SuggestionView.hide().detach();
-    }
+    };
 
 
     var _suggestion = function(){
@@ -624,16 +650,16 @@
             var vals = _parseTags.apply(this,[this.inputView.val()]);
             keyword = vals[vals.length-1];
         }
-        if($.trim(keyword).length==0){
+        if($.trim(keyword).length===0){
             _emptySuggestionView.apply(that);
             return;
         }
         if($.isArray(this.option.data)){
             _showSuggestionView.apply(that,[_filter(that.option.data,keyword)]);
         }else if($.isFunction(this.option.data)){
-            that.option.data(keyword,function(result){_showSuggestionView.apply(that,[result])});
+            that.option.data(keyword,function(result){_showSuggestionView.apply(that,[result]);});
         }
-    }
+    };
 
     var _select=function(){
         var that =this;
@@ -716,21 +742,21 @@
         ret.tag = ret_tags.join(" ");
         ret.url = ret_links.join(" ");
         return ret;
-    }
+    };
 
     /*filter char */
     var fc_reg= /[\"\/\?\\!&%~{}]/g;
     var _filter_tag = function(str){
         return str.substring(1,str.length);
-    }
+    };
     var _filter_url = function(str){
         return str.substring(1,str.length);
-    }
+    };
     var _filter_char = function(str){
         if(!str) return "";
         str = str.replace(fc_reg," ");
         return str;
-    }
+    };
 
     /**
      * split the query by double quotation marks
@@ -799,6 +825,14 @@
         var stack = [],tags=[];
         var begin_delimiter = false;
 
+
+        function clearStack(){
+            if(stack.length>0){
+                tags.push(stack.join(''));
+                stack.length=0;
+            }
+        }
+
         for(var i= 0,len=strTags.length,c;c = strTags.charAt(i),i<len;i++){
             if(c=='"'){
                 if(!begin_delimiter)
@@ -811,10 +845,11 @@
                 if(begin_delimiter){
                     stack.push(c);
                 }else{
+                    var con;
                     if(this.option.mutil===true)
-                       var con = /\s/.test(c);
+                       con = /\s/.test(c);
                     else
-                       var con = (c== this.option.mutil);
+                       con = (c== this.option.mutil);
                     if(con)
                         clearStack();
                     else
@@ -824,18 +859,11 @@
         }
         clearStack();
         return tags;
-        function clearStack(){
-            if(stack.length>0){
-                tags.push(stack.join(''));
-                stack.length=0;
-            }
-        }
-    }
+
+    };
 
     var _unparseTags = function(tagArray,joinBy){
-        joinBy = joinBy || ' ';
 
-        return $.map(tagArray,function(t){return quoteTag(t);},this).join(joinBy);
         function quoteTag(tag){
             tag = tag
                 .replace(/"/g, "'")
@@ -847,13 +875,16 @@
             }
             return tag;
         }
-    }
+        joinBy = joinBy || ' ';
+
+        return $.map(tagArray,function(t){return quoteTag(t);},this).join(joinBy);
+    };
 
 
 
     var _escapeRegex = function(value){
         return value.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&");
-    }
+    };
 
     var _filter = function(array,term){
         var matcher = new RegExp(_escapeRegex(term),"i");
@@ -876,7 +907,7 @@
 
         var r = $.merge($.merge(r1,r2),r3);
         return r;
-    }
+    };
     //Public method
 
 
@@ -889,7 +920,7 @@
                 if(this.option.type=="Library"){
                     this.adVancePanel.find('input[name=tagAND],input[name=tagOR],input[name=tagNOT]').DiigoLSearch({
                         data:this.option.data
-                    })
+                    });
                 }
             }
         }else if(typeof(option)==='string'){
@@ -905,7 +936,7 @@
                     break;
             }
         }
-    }
+    };
 
 
     Controller.prototype.search = function(){
@@ -932,10 +963,10 @@
         this.SuggestionView.remove();
         this.inputView.unbind('keyup',this._keyup).unbind('keydown',this._keydown).unbind('blur',this._blur);
         delete this.inputView.get(0).controller;
-    }
+    };
     Controller.prototype.show = function(){
         _suggestion.apply(this);
-    }
+    };
 
 
 

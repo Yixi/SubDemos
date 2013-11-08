@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timeline</title>
+    <script src="js/jquery-1.9.1.min.js"></script>
+    <script src="js/jquery.Timeline.js"></script>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+            outline: 0;
+        }
+
+        #timeline{
+            width: 500px;
+            position: absolute;
+            left: 50%;
+            margin-left: -250px;
+            top:50px;
+        }
+
+        /*for plutin*/
+
+        .tl_timeline{
+            background: #888;
+        }
+        .tl_slider{
+            background: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="timeline">
+
+    </div>
+
+    <script>
+        $('#timeline').TimeLine();
+    </script>
+</body>
+</html>

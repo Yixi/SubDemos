@@ -207,7 +207,10 @@
         complete:function(key){
           document.getElementById('output').innerHTML="type:"+key.type+"<br/>"+key.value;
         },
-        dtype:"meta"
+        dtype:"meta",
+        typeChange:function(e){
+            console.log(e);
+        }
 
 
 //        data:function(request,response){
